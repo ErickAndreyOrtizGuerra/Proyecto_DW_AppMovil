@@ -2,16 +2,19 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  FlatList,
-  TouchableOpacity,
   StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  FlatList,
   ActivityIndicator,
   RefreshControl,
   Alert,
   TextInput,
   Modal,
   Dimensions,
-  StatusBar
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,49 +22,20 @@ import transporteApi from '../services/transporteApi';
 import { Card, GradientCard } from '../components/Card';
 import { Heading, Body, Caption, Label } from '../components/Typography';
 import { Button } from '../components/Button';
-import SearchInput from '../components/SearchInput';
-import UncontrolledTextInput from '../components/UncontrolledTextInput';
+import FloatingSearch from '../components/FloatingSearch';
 import { COLORS, SPACING, BORDERS, SHADOWS, GRADIENTS, TYPOGRAPHY } from '../constants/Design';
 
 const { width } = Dimensions.get('window');
 
-const CamionesScreen = React.memo(({ navigation }) => {
+const CamionesScreen = ({ navigation }) => {
   const [camiones, setCamiones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [searchText, setSearchText] = useState('');
-  const searchInputRef = React.useRef(null);
-  
-  // Usar un timeout para debounce más agresivo
-  const searchTimeoutRef = React.useRef(null);
-  
-  // Función para manejar la búsqueda con debounce
-  const handleSearchChange = React.useCallback((text) => {
-    // Limpiar timeout anterior
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-    
-    // Establecer nuevo timeout
-    searchTimeoutRef.current = setTimeout(() => {
-      setSearchText(text);
-    }, 500); // Debounce de 500ms
-  }, []);
   const [filtroModalVisible, setFiltroModalVisible] = useState(false);
   const [filtroActivo, setFiltroActivo] = useState('todos');
+  const [searchText, setSearchText] = useState('');
 
-  useEffect(() => {
-    cargarCamiones();
-    
-    // Cleanup function para limpiar el timeout
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Usar useMemo para evitar re-renderizados innecesarios
+  // Filtrar camiones usando useMemo para optimizar
   const camionesFiltrados = React.useMemo(() => {
     let resultado = [...camiones];
 
@@ -84,6 +58,10 @@ const CamionesScreen = React.memo(({ navigation }) => {
 
     return resultado;
   }, [camiones, searchText, filtroActivo]);
+
+  useEffect(() => {
+    cargarCamiones();
+  }, []);
 
   const cargarCamiones = async () => {
     try {
@@ -319,28 +297,25 @@ const CamionesScreen = React.memo(({ navigation }) => {
         </View>
       </LinearGradient>
 
-      <View style={styles.searchContainer}>
-        <Card style={styles.searchCard} shadow="medium" padding="md">
-          <View style={styles.searchInputContainer}>
-            <Ionicons name="search" size={20} color={COLORS.secondary[400]} />
-            <UncontrolledTextInput
-              ref={searchInputRef}
-              style={styles.searchInput}
-              placeholder="Buscar por placa, marca, modelo..."
-              onChangeText={handleSearchChange}
-              placeholderTextColor={COLORS.secondary[400]}
-            />
-          </View>
-        </Card>
-        
-        <Button
-          variant="outline"
-          size="medium"
-          icon="filter"
-          onPress={() => setFiltroModalVisible(true)}
-          style={styles.filterButton}
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.searchSection}
+      >
+        <FloatingSearch
+          placeholder="Buscar por placa, marca, modelo..."
+          onChangeText={setSearchText}
         />
-      </View>
+        
+        <View style={styles.filterContainer}>
+          <Button
+            variant="outline"
+            size="medium"
+            icon="filter"
+            onPress={() => setFiltroModalVisible(true)}
+            style={styles.filterButton}
+          />
+        </View>
+      </KeyboardAvoidingView>
 
       <FlatList
         data={camionesFiltrados}
@@ -378,7 +353,7 @@ const CamionesScreen = React.memo(({ navigation }) => {
       <FiltroModal />
     </View>
   );
-});
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -438,30 +413,14 @@ const styles = StyleSheet.create({
     height: 32,
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
-  searchContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.lg,
-    gap: SPACING.md,
+  searchSection: {
+    backgroundColor: COLORS.secondary[50],
   },
   
-  searchCard: {
-    flex: 1,
-  },
-  
-  searchInputContainer: {
-    flexDirection: 'row',
+  filterContainer: {
     alignItems: 'center',
-    gap: SPACING.md,
-  },
-  
-  searchInput: {
-    flex: 1,
-    fontSize: TYPOGRAPHY.sizes.base,
-    color: COLORS.secondary[700],
-    paddingVertical: SPACING.xs,
-    paddingHorizontal: 0,
-    margin: 0,
+    paddingHorizontal: SPACING.xl,
+    paddingBottom: SPACING.lg,
   },
   
   filterButton: {

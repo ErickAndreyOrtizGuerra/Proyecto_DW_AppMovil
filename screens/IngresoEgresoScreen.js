@@ -5,14 +5,20 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl,
   Alert,
+  TextInput,
   Modal,
-  Dimensions
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import transporteApi from '../services/transporteApi';
+import StableFormInput from '../components/StableFormInput';
 
 const { width } = Dimensions.get('window');
 
@@ -168,7 +174,10 @@ const IngresoEgresoScreen = () => {
       visible={modalVisible}
       onRequestClose={() => setModalVisible(false)}
     >
-      <View style={styles.modalOverlay}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.modalOverlay}
+      >
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>
@@ -179,18 +188,14 @@ const IngresoEgresoScreen = () => {
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.modalBody}>
+          <ScrollView style={styles.modalBody} keyboardShouldPersistTaps="handled">
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Placa del Camión *</Text>
-              <TextInput
-                style={styles.textInput}
+              <StableFormInput
+                label="Placa del Camión *"
                 value={formData.placa}
                 onChangeText={(text) => setFormData({...formData, placa: text})}
                 placeholder="Ej: P-001AAA"
                 autoCapitalize="characters"
-                autoCorrect={false}
-                returnKeyType="next"
-                blurOnSubmit={false}
               />
               
               <Text style={styles.helperText}>Selecciona un camión activo:</Text>
@@ -295,7 +300,7 @@ const IngresoEgresoScreen = () => {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 

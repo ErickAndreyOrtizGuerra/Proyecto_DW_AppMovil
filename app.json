@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Transportes Ultrarrápidos",
+    "slug": "transportes-ultrarapidos-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#1e40af"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.transportes.ultrarapidos"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1e40af"
+      },
+      "package": "com.transportes.ultrarapidos"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "scheme": "transportes-app",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}

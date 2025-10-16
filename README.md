@@ -50,66 +50,6 @@ Una aplicación móvil moderna desarrollada con React Native y Expo para gestion
 - **Vector Icons** - Iconografía moderna
 - **API REST** - Consumo de datos en tiempo real
 
-## 🚀 Instalación y Configuración
-
-### Prerrequisitos
-- Node.js (versión 16 o superior)
-- npm o yarn
-- Expo CLI instalado globalmente
-- Dispositivo móvil con Expo Go o emulador
-
-### Pasos de Instalación
-
-1. **Clonar o descargar el proyecto**
-   ```bash
-   cd "Prueba Transporte Api"
-   ```
-
-2. **Instalar dependencias**
-   ```bash
-   npm install
-   ```
-
-3. **Iniciar el servidor de desarrollo**
-   ```bash
-   npm start
-   # o
-   expo start
-   ```
-
-4. **Ejecutar en dispositivo**
-   - Escanea el código QR con Expo Go (Android/iOS)
-   - O presiona 'a' para Android emulator
-   - O presiona 'i' para iOS simulator
-
-## 📡 API Endpoints
-
-La aplicación consume la API de Transportes Ultrarrápidos:
-
-- **Base URL**: `https://transportes-ultrarapidos-api.uc.r.appspot.com/api/`
-- **Camiones**: `/camiones` - Lista de 51 camiones
-- **Transportistas**: `/transportistas` - Lista de 19 transportistas
-- **Estado**: `/test` - Verificación del servicio
-
-## 📁 Estructura del Proyecto
-
-```
-Prueba Transporte Api/
-├── App.js                      # Componente principal y navegación
-├── app.json                    # Configuración de Expo
-├── package.json                # Dependencias y scripts
-├── babel.config.js             # Configuración de Babel
-├── services/
-│   └── transporteApi.js        # Servicio para consumir la API
-└── screens/
-    ├── CamionesScreen.js       # Lista de camiones
-    ├── CamionDetalleScreen.js  # Detalles del camión
-    ├── TransportistasScreen.js # Lista de transportistas
-    ├── EstadisticasScreen.js   # Dashboard de estadísticas
-    ├── IngresoEgresoScreen.js  # Control de movimientos
-    ├── ValesCombustibleScreen.js # Gestión de combustible
-    └── ReportesScreen.js       # Reportes operativos
-```
 
 ## 🎨 Diseño y UX
 
@@ -144,21 +84,7 @@ Prueba Transporte Api/
 - **Ubicaciones**: Principalmente en Guatemala
 - **Contacto completo**: Teléfono, email, dirección
 
-## 🔧 Scripts Disponibles
 
-```bash
-# Iniciar servidor de desarrollo
-npm start
-
-# Ejecutar en Android
-npm run android
-
-# Ejecutar en iOS
-npm run ios
-
-# Ejecutar en web
-npm run web
-```
 
 ## 📱 Funcionalidades por Pantalla
 
@@ -205,47 +131,4 @@ npm run web
 - Información del sistema móvil
 - Funcionalidades de seguridad
 
-## 🌟 Características Destacadas
 
-- **Offline-first**: Manejo de errores de conectividad
-- **Performance optimizada**: Lazy loading y optimizaciones
-- **Accesibilidad**: Soporte para lectores de pantalla
-- **Responsive**: Adaptable a diferentes dispositivos
-- **Intuitive UX**: Navegación clara y consistente
-
-## 🐛 Solución de Problemas
-
-### Error de conexión a la API
-- Verificar conexión a internet
-- Comprobar que la API esté funcionando: `/api/test`
-
-### Problemas de instalación
-```bash
-# Limpiar cache de npm
-npm cache clean --force
-
-# Reinstalar dependencias
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### Problemas con Expo
-```bash
-# Actualizar Expo CLI
-npm install -g @expo/cli@latest
-
-# Limpiar cache de Expo
-expo r -c
-```
-
-## 📄 Licencia
-
-MIT License - Libre para uso personal y comercial.
-
-## 👨‍💻 Desarrollo
-
-Desarrollado con ❤️ para Transportes Ultrarrápidos Guatemala.
-
----
-
-**¿Necesitas ayuda?** Contacta al equipo de desarrollo para soporte técnico.

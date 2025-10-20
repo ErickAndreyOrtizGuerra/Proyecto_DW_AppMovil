@@ -6,6 +6,10 @@ Aplicación móvil desarrollada con React Native y Expo para la gestión integra
 
 ### 🚚 Gestión de Camiones
 - **Lista completa** de la flota de vehículos
+- **📱 Generador de códigos QR** integrado
+- **🔍 15+ camiones disponibles** para generar QR
+- **📊 Estadísticas en tiempo real** - Total, activos, mantenimiento
+- **🔄 Pull-to-refresh** para actualizar datos
 - **Información detallada** de cada camión (marca, modelo, año, capacidad)
 - **Estados en tiempo real** (activo, mantenimiento, fuera de servicio)
 - **Filtros avanzados** por estado y búsqueda optimizada
@@ -19,11 +23,14 @@ Aplicación móvil desarrollada con React Native y Expo para la gestión integra
 
 ### 📊 Control de Movimientos
 - **Registro de ingresos y egresos** de camiones
-- **📷 Scanner de placas y códigos QR** para identificación rápida
+- **🔍 Scanner dedicado** con botón principal en pantalla
+- **📱 Pantalla ScannerScreen** independiente y completa
+- **✅ Validación guatemalteca** - P-, C-, TC-, M-, A-, O-, CD-, CC-
+- **💡 Auto-completado inteligente** con sugerencias
+- **📋 Generación de comprobantes PDF** automática
 - **Formularios intuitivos** con validación
 - **Historial completo** de movimientos
 - **🔔 Notificaciones automáticas** de registros
-- **Información detallada** (piloto, origen, destino, carga)
 
 ### ⛽ Vales de Combustible
 - **Emisión de vales** con numeración automática
@@ -40,13 +47,15 @@ Aplicación móvil desarrollada con React Native y Expo para la gestión integra
 - **Recordatorios de mantenimiento** preventivo
 - **Pantalla de configuración** completa
 
-### 📷 Scanner Avanzado
-- **Escaneo de placas** de camiones
-- **Códigos QR** para identificación rápida
-- **Validación automática** de formato de placas guatemaltecas
-- **Interfaz intuitiva** con marco de escaneo
-- **Flash integrado** para condiciones de poca luz
-- **Confirmación visual** de códigos escaneados
+### 📷 Scanner Optimizado (Sin Cámara)
+- **🔍 Pantalla dedicada** para escaneo manual inteligente
+- **📱 Entrada manual optimizada** con auto-completado
+- **✅ Validación en tiempo real** de formatos guatemaltecos
+- **💡 Auto-completado** con 15+ placas comunes
+- **🕒 Historial de escaneos** para reutilización rápida
+- **📋 Selector de modo** - Placa vs Código QR
+- **⚡ Acciones rápidas** - Ejemplos, limpiar, ayuda
+- **🎯 100% compatible** con Expo Go (sin Development Build)
 
 ### 📈 Reportes y Estadísticas
 - **Métricas generales** de la flota
@@ -229,6 +238,44 @@ La aplicación consume datos de la API de Transportes Ultrarrápidos:
 
 ## ✅ Funcionalidades Implementadas
 
+### ✅ Sistema de Scanner Completo (Sin Cámara)
+- [x] **📱 ScannerScreen independiente** - Pantalla dedicada completa
+- [x] **🔍 Entrada manual optimizada** - Sin dependencias de cámara
+- [x] **💡 Auto-completado inteligente** - 15+ placas guatemaltecas comunes
+- [x] **✅ Validación en tiempo real** - Feedback visual instantáneo
+- [x] **📋 Selector de modo dual** - Placa vs Código QR
+- [x] **🕒 Historial de escaneos** - Reutilización de datos anteriores
+- [x] **⚡ Acciones rápidas** - Ejemplos, limpiar, ayuda contextual
+- [x] **🎯 100% compatible Expo Go** - Sin Development Build necesario
+
+### ✅ Generador de Códigos QR
+- [x] **📱 QRGeneratorScreen completa** - Pantalla dedicada para generar QR
+- [x] **🚛 15+ camiones disponibles** - Lista completa de la flota
+- [x] **📊 Estadísticas dinámicas** - Total, activos, mantenimiento
+- [x] **🔄 Pull-to-refresh** - Actualización manual de datos
+- [x] **📱 Compartir QR** - Share nativo integrado
+- [x] **🔗 Integración con Scanner** - QR generados funcionan en Scanner
+
+### ✅ Sistema de Comprobantes PDF
+- [x] **📄 Generación automática** - PDFs profesionales para movimientos
+- [x] **🎨 Diseño corporativo** - Logo, colores y formato empresarial
+- [x] **📋 Información completa** - Datos del camión, piloto, ruta, timestamps
+- [x] **📱 Compartir/Imprimir** - Exportar comprobantes generados
+- [x] **🔗 Integración total** - Desde registro hasta comprobante
+
+### ✅ Validación de Formatos Guatemaltecos
+- [x] **🇬🇹 15+ formatos oficiales** - P-, C-, TC-, M-, A-, O-, CD-, CC-
+- [x] **✅ Validación estricta** - Patrones oficiales guatemaltecos
+- [x] **💬 Mensajes descriptivos** - Errores claros y sugerencias
+- [x] **🔧 Auto-formato** - Agrega guiones automáticamente
+- [x] **⚠️ Modo permisivo** - Opción continuar con formatos no estándar
+
+### ✅ Navegación y UX Mejorada
+- [x] **📱 Stack Navigators** - CamionesStack, MovimientosStack, ReportesStack
+- [x] **🔍 Botón Scanner principal** - Acceso directo desde Movimientos
+- [x] **🎨 Diseño consistente** - Colores distintivos por función
+- [x] **⚡ Flujo optimizado** - Scanner → Validación → Registro → PDF
+
 ### ✅ Aplicación Móvil Completa
 - [x] Interfaz moderna y responsive
 - [x] Navegación fluida entre pantallas
@@ -246,12 +293,6 @@ La aplicación consume datos de la API de Transportes Ultrarrápidos:
 - [x] Control de estados
 - [x] Cálculos automáticos
 
-### ✅ Scanner de Placas/QR
-- [x] **Escaneo de placas de camiones**
-- [x] **Códigos QR para identificación**
-- [x] Validación de formato guatemalteco
-- [x] Interfaz intuitiva con flash
-
 ### ✅ Sistema de Notificaciones
 - [x] **Notificaciones push locales**
 - [x] **Configuración personalizable**
@@ -260,7 +301,9 @@ La aplicación consume datos de la API de Transportes Ultrarrápidos:
 
 ## 🔄 Próximas Funcionalidades
 
-- [ ] **Impresión de comprobantes** (PDF/Físico)
+- [x] ~~**Generación de comprobantes PDF**~~ ✅ **Implementado**
+- [x] ~~**Scanner de placas y QR**~~ ✅ **Implementado**
+- [x] ~~**Validación de formatos guatemaltecos**~~ ✅ **Implementado**
 - [ ] **Modo offline** con sincronización
 - [ ] **Geolocalización** de camiones en tiempo real
 - [ ] **Push notifications remotas** desde servidor
@@ -268,6 +311,9 @@ La aplicación consume datos de la API de Transportes Ultrarrápidos:
 - [ ] **Roles y permisos** diferenciados
 - [ ] **Dashboard** en tiempo real
 - [ ] **Backup automático** de datos
+- [ ] **Impresión física** de comprobantes
+- [ ] **Reportes avanzados** con gráficos
+- [ ] **Integración con GPS** para tracking
 
 ## 🤝 Contribución
 
@@ -290,4 +336,4 @@ Para soporte técnico o consultas sobre el proyecto, contactar al equipo de desa
 ---
 
 **Desarrollado con ❤️ para Transportes Ultrarrápidos**
-**Ahora con Scanner 📷 y Notificaciones 🔔**
+**✨ Ahora con Scanner Optimizado 🔍, Generador QR 📱 y Comprobantes PDF 📄 ✨**

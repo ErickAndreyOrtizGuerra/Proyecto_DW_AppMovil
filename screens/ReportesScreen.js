@@ -14,7 +14,7 @@ import transporteApi from '../services/transporteApi';
 
 const { width } = Dimensions.get('window');
 
-const ReportesScreen = () => {
+const ReportesScreen = ({ navigation }) => {
   const [estadisticas, setEstadisticas] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -154,8 +154,18 @@ const ReportesScreen = () => {
         colors={['#1E40AF', '#3B82F6']}
         style={styles.header}
       >
-        <Text style={styles.headerTitle}>📊 Reportes Operativos</Text>
-        <Text style={styles.headerSubtitle}>Análisis y estadísticas del sistema</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>📊 Reportes Operativos</Text>
+            <Text style={styles.headerSubtitle}>Análisis y estadísticas del sistema</Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.notificationButton}
+            onPress={() => navigation.navigate('Notificaciones')}
+          >
+            <Ionicons name="notifications" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
       </LinearGradient>
 
       {/* Métricas Generales */}
@@ -283,10 +293,26 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 50,
-    paddingBottom: 20,
+    paddingBottom: 30,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerText: {
+    flex: 1,
+  },
+  notificationButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 28,

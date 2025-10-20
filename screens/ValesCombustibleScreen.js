@@ -13,6 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import transporteApi from '../services/transporteApi';
+import notificationService from '../services/notificationService';
 
 const { width } = Dimensions.get('window');
 
@@ -107,7 +108,7 @@ const ValesCombustibleScreen = () => {
     });
   };
 
-  const emitirVale = () => {
+  const emitirVale = async () => {
     if (!formData.placa || !formData.piloto || !formData.cantidadGalones) {
       Alert.alert('Error', 'Todos los campos son obligatorios');
       return;
@@ -127,6 +128,10 @@ const ValesCombustibleScreen = () => {
 
     setVales([nuevoVale, ...vales]);
     setModalVisible(false);
+    
+    // Enviar notificación
+    await notificationService.notifyValeRegistrado(nuevoVale);
+    
     Alert.alert('Éxito', `Vale ${formData.numeroOrden} emitido correctamente`);
   };
 

@@ -1,134 +1,293 @@
 # 🚛 Transportes Ultrarrápidos - App Móvil
 
-Una aplicación móvil moderna desarrollada con React Native y Expo para gestionar la flota de camiones y transportistas de Transportes Ultrarrápidos en Guatemala.
+Aplicación móvil desarrollada con React Native y Expo para la gestión integral de una empresa de transportes con funcionalidades avanzadas de scanner y notificaciones.
 
-## 📱 Características
+## 📱 Características Principales
 
 ### 🚚 Gestión de Camiones
-- **Lista completa de camiones** con información detallada
-- **Filtros avanzados** por estado (activo, mantenimiento, fuera de servicio)
-- **Búsqueda inteligente** por placa, marca, modelo, tipo o transportista
-- **Vista detallada** de cada camión con toda la información técnica
-- **Contacto directo** con el transportista (llamada y email)
+- **Lista completa** de la flota de vehículos
+- **Información detallada** de cada camión (marca, modelo, año, capacidad)
+- **Estados en tiempo real** (activo, mantenimiento, fuera de servicio)
+- **Filtros avanzados** por estado y búsqueda optimizada
+- **Vista de detalle** con información completa del vehículo
 
-### 👥 Directorio de Transportistas
-- **Lista de todos los transportistas** (empresas e independientes)
-- **Filtros por tipo** (empresa/independiente)
-- **Información completa** de contacto y ubicación
-- **Acciones rápidas** para llamar o enviar email
+### 👥 Gestión de Transportistas
+- **Directorio completo** de transportistas y empresas
+- **Información de contacto** (teléfono, email, dirección)
+- **Clasificación** entre empresas e independientes
+- **Búsqueda rápida** por nombre o empresa
 
-### 📊 Estadísticas en Tiempo Real
-- **Dashboard completo** con métricas de la flota
-- **Gráficos interactivos** de distribución por tipo y marca
-- **Indicadores clave** de disponibilidad y estado
-- **Análisis visual** de la composición de la flota
+### 📊 Control de Movimientos
+- **Registro de ingresos y egresos** de camiones
+- **📷 Scanner de placas y códigos QR** para identificación rápida
+- **Formularios intuitivos** con validación
+- **Historial completo** de movimientos
+- **🔔 Notificaciones automáticas** de registros
+- **Información detallada** (piloto, origen, destino, carga)
 
-### 🚛 Control de Movimientos
-- **Registro de ingresos/egresos** de camiones en tiempo real
-- **Datos del piloto** y información de ruta (origen/destino)
-- **Tipo de carga** y observaciones adicionales
-- **Historial completo** de movimientos con filtros
+### ⛽ Vales de Combustible
+- **Emisión de vales** con numeración automática
+- **Cálculo automático** de totales
+- **Control de estados** (emitido, usado)
+- **🔔 Notificaciones** de vales registrados
+- **Historial completo** de vales
 
-### ⛽ Gestión de Combustible
-- **Emisión de vales** de combustible por camión
-- **Control automático** de numeración de órdenes
-- **Seguimiento de estados** (emitido/usado/cancelado)
-- **Estadísticas de consumo** por período y vehículo
+### 🔔 Sistema de Notificaciones
+- **Notificaciones push** para eventos importantes
+- **Configuración personalizable** por tipo de evento
+- **Alertas de ingresos/egresos** registrados
+- **Notificaciones de vales** de combustible
+- **Recordatorios de mantenimiento** preventivo
+- **Pantalla de configuración** completa
 
-### 📊 Reportes Operativos
-- **Reportes de ingresos/egresos** mensuales por predio
-- **Análisis de vales** de combustible por fecha/camión/piloto
-- **Reportes de viajes** con kilómetros recorridos
-- **Productividad del personal** y consolidados mensuales
+### 📷 Scanner Avanzado
+- **Escaneo de placas** de camiones
+- **Códigos QR** para identificación rápida
+- **Validación automática** de formato de placas guatemaltecas
+- **Interfaz intuitiva** con marco de escaneo
+- **Flash integrado** para condiciones de poca luz
+- **Confirmación visual** de códigos escaneados
 
-## 🛠 Tecnologías Utilizadas
+### 📈 Reportes y Estadísticas
+- **Métricas generales** de la flota
+- **Reportes operativos** (ingresos, egresos, combustible)
+- **Análisis de productividad** por empleado
+- **🔔 Acceso a configuración** de notificaciones
+- **Exportación** de datos
 
-- **React Native** - Framework de desarrollo móvil
-- **Expo** - Plataforma de desarrollo y despliegue
+## 🛠️ Tecnologías Utilizadas
+
+- **React Native** - Framework principal
+- **Expo** - Plataforma de desarrollo
 - **React Navigation** - Navegación entre pantallas
+- **Expo Camera** - Funcionalidad de cámara
+- **Expo Barcode Scanner** - Scanner de códigos
+- **Expo Notifications** - Sistema de notificaciones
+- **AsyncStorage** - Almacenamiento local
 - **Expo Linear Gradient** - Gradientes y efectos visuales
-- **Vector Icons** - Iconografía moderna
-- **API REST** - Consumo de datos en tiempo real
+- **Expo Vector Icons** - Iconografía
+- **JavaScript ES6+** - Lenguaje de programación
 
+## 🚀 Instalación y Configuración
 
-## 🎨 Diseño y UX
+### Prerrequisitos
+- Node.js (versión 16 o superior)
+- npm o yarn
+- Expo CLI
+- Dispositivo móvil con Expo Go o emulador
 
-### Paleta de Colores
-- **Primario**: #1E40AF (Azul)
-- **Secundario**: #3B82F6 (Azul claro)
-- **Éxito**: #10B981 (Verde)
-- **Advertencia**: #F59E0B (Amarillo)
-- **Error**: #EF4444 (Rojo)
-- **Fondo**: #F1F5F9 (Gris claro)
+### Pasos de instalación
 
-### Características de Diseño
-- **Material Design** con elementos modernos
-- **Gradientes suaves** para mejor experiencia visual
-- **Iconografía consistente** con Ionicons
-- **Tipografía clara** y legible
-- **Animaciones fluidas** en transiciones
-- **Responsive design** para diferentes tamaños de pantalla
+1. **Clonar el repositorio**
+```bash
+git clone [url-del-repositorio]
+cd transportes-ultrarapidos-app
+```
 
-## 📊 Datos de la Flota
+2. **Instalar dependencias**
+```bash
+npm install
+```
 
-### Camiones (51 total)
-- **Tipos**: Plataforma, Furgón, Refrigerado, Tanque, Carga General
-- **Estados**: Activo, Mantenimiento, Fuera de Servicio
-- **Capacidades**: 9.75 - 42.00 toneladas
-- **Marcas**: Freightliner, Volvo, Mercedes-Benz, Scania, DAF, etc.
-- **Años**: 2016-2022
+3. **Instalar dependencias adicionales**
+```bash
+npx expo install expo-camera expo-barcode-scanner expo-notifications @react-native-async-storage/async-storage
+```
 
-### Transportistas (19 total)
-- **7 Empresas** con NIT registrado
-- **12 Independientes** sin NIT
-- **Ubicaciones**: Principalmente en Guatemala
-- **Contacto completo**: Teléfono, email, dirección
+4. **Iniciar el servidor de desarrollo**
+```bash
+npm start
+```
 
+5. **Ejecutar en dispositivo**
+- Escanear el código QR con Expo Go (Android/iOS)
+- O usar emulador: `npm run android` / `npm run ios`
 
+## 📁 Estructura del Proyecto
 
-## 📱 Funcionalidades por Pantalla
+```
+transportes-ultrarapidos-app/
+├── screens/                 # Pantallas de la aplicación
+│   ├── CamionesScreen.js    # Lista de camiones
+│   ├── CamionDetalleScreen.js # Detalle de camión
+│   ├── TransportistasScreen.js # Lista de transportistas
+│   ├── IngresoEgresoScreen.js # Control de movimientos
+│   ├── ValesCombustibleScreen.js # Vales de combustible
+│   ├── ReportesScreen.js    # Reportes y estadísticas
+│   └── NotificacionesScreen.js # Configuración de notificaciones
+├── components/              # Componentes reutilizables
+│   ├── Card.js             # Componentes de tarjetas
+│   ├── Typography.js       # Componentes de texto
+│   ├── Button.js           # Componentes de botones
+│   ├── PlateScanner.js     # Scanner de placas/QR
+│   ├── FloatingSearch.js   # Búsqueda flotante optimizada
+│   └── StableFormInput.js  # Inputs de formulario estables
+├── services/               # Servicios y APIs
+│   ├── transporteApi.js    # API de transportes
+│   └── notificationService.js # Servicio de notificaciones
+├── constants/              # Constantes y configuración
+│   └── Design.js           # Sistema de diseño
+├── App.js                  # Componente principal
+├── app.json               # Configuración de Expo y permisos
+└── package.json           # Dependencias del proyecto
+```
 
-### 🚛 Pantalla de Camiones
-- Lista paginada con pull-to-refresh
-- Búsqueda en tiempo real
-- Filtros por estado
-- Cards con información resumida
-- Navegación a detalles
+## 🔐 Permisos y Configuración
 
-### 🔍 Detalle de Camión
-- Información completa del vehículo
-- Datos del transportista
-- Botones de acción (llamar/email)
-- Información técnica y fechas
+### Permisos de iOS
+- **NSCameraUsageDescription**: Acceso a cámara para scanner
+- **NSMicrophoneUsageDescription**: Funciones de notificación
 
-### 👥 Pantalla de Transportistas
-- Lista con filtros por tipo
-- Búsqueda por múltiples campos
-- Cards diferenciadas por tipo
-- Acciones directas de contacto
+### Permisos de Android
+- **CAMERA**: Acceso a cámara
+- **RECORD_AUDIO**: Funciones de audio
+- **RECEIVE_BOOT_COMPLETED**: Notificaciones persistentes
+- **VIBRATE**: Vibración en notificaciones
+- **WAKE_LOCK**: Mantener dispositivo activo
 
-### 📊 Pantalla de Estadísticas
-- Métricas generales de la flota
-- Gráficos de barras interactivos
-- Distribución por tipos y marcas
-- Indicadores de disponibilidad
+## 🎨 Sistema de Diseño
 
-### 🚛 Pantalla de Movimientos
-- Registro de ingresos y egresos
-- Formularios con validación
-- Selección rápida de camiones
-- Historial de movimientos recientes
+La aplicación utiliza un sistema de diseño consistente con:
 
-### ⛽ Pantalla de Combustible
-- Emisión de vales automática
-- Control de numeración
-- Estados de vales (emitido/usado)
-- Estadísticas de consumo
+- **Colores primarios**: Azules (#1E40AF, #3B82F6)
+- **Tipografía**: Sistema nativo optimizado
+- **Espaciado**: Sistema modular (4px, 8px, 16px, etc.)
+- **Componentes**: Reutilizables y consistentes
+- **Gradientes**: Efectos visuales modernos
+- **Animaciones**: Transiciones fluidas y microinteracciones
 
-### 📊 Pantalla de Reportes
-- Reportes operativos diversos
-- Métricas de productividad
-- Información del sistema móvil
-- Funcionalidades de seguridad
+## 📊 API y Datos
 
+La aplicación consume datos de la API de Transportes Ultrarrápidos:
+- **Base URL**: `https://transportes-ultrarapidos-api.uc.r.appspot.com/api/`
+- **Endpoints**: `/camiones`, `/transportistas`
+- **Datos reales**: 51 camiones y 19 transportistas
 
+## 🔧 Funcionalidades Técnicas
+
+### Optimizaciones de Performance
+- **FlatList optimizada** para listas grandes
+- **Lazy loading** de componentes
+- **Memoización** de componentes pesados
+- **Gestión eficiente** del estado
+- **Componentes estables** que evitan re-renderizados
+
+### Scanner Avanzado
+- **Múltiples formatos**: QR, Code128, Code39, EAN13, EAN8
+- **Validación de placas**: Formato guatemalteco (P-001AAA)
+- **Flash automático**: Para condiciones de poca luz
+- **Confirmación visual**: Feedback inmediato al usuario
+- **Manejo de errores**: Validación y reintentos
+
+### Sistema de Notificaciones
+- **Notificaciones push locales**
+- **Configuración personalizable**
+- **Alertas automáticas de eventos**
+- **Panel de administración completo**
+
+### Experiencia de Usuario
+- **Navegación fluida** con animaciones
+- **Pull-to-refresh** en listas
+- **Estados de carga** informativos
+- **Validación** de formularios en tiempo real
+- **Feedback visual** en todas las interacciones
+- **Teclado estable** que no se cierra al escribir
+
+## 📱 Pantallas Principales
+
+### 1. Lista de Camiones
+- Vista de tarjetas con información esencial
+- **Búsqueda flotante** con animaciones
+- Filtros por estado con chips visuales
+- Navegación a vista de detalle
+
+### 2. Control de Movimientos
+- **Scanner integrado** para placas y QR
+- Registro rápido de ingresos y egresos
+- **Notificaciones automáticas** de registros
+- Formularios con validación en tiempo real
+- Selección rápida de camiones activos
+
+### 3. Vales de Combustible
+- Emisión con **notificaciones automáticas**
+- Cálculo de totales en tiempo real
+- Control de estados visual
+- Historial con filtros avanzados
+
+### 4. Configuración de Notificaciones
+- **Panel de control completo**
+- Activación/desactivación por tipo
+- **Notificación de prueba**
+- Información del dispositivo
+- Limpieza de notificaciones programadas
+
+### 5. Reportes
+- **Acceso rápido** a configuración de notificaciones
+- Métricas generales actualizadas
+- Reportes operativos detallados
+- Análisis de productividad
+
+## ✅ Funcionalidades Implementadas
+
+### ✅ Aplicación Móvil Completa
+- [x] Interfaz moderna y responsive
+- [x] Navegación fluida entre pantallas
+- [x] Sistema de diseño consistente
+
+### ✅ Registro de Ingresos/Egresos
+- [x] Formularios intuitivos y validados
+- [x] **Scanner de placas/QR integrado**
+- [x] **Notificaciones automáticas**
+- [x] Historial completo de movimientos
+
+### ✅ Vales de Combustible
+- [x] Emisión con numeración automática
+- [x] **Notificaciones de vales registrados**
+- [x] Control de estados
+- [x] Cálculos automáticos
+
+### ✅ Scanner de Placas/QR
+- [x] **Escaneo de placas de camiones**
+- [x] **Códigos QR para identificación**
+- [x] Validación de formato guatemalteco
+- [x] Interfaz intuitiva con flash
+
+### ✅ Sistema de Notificaciones
+- [x] **Notificaciones push locales**
+- [x] **Configuración personalizable**
+- [x] **Alertas automáticas de eventos**
+- [x] **Panel de administración completo**
+
+## 🔄 Próximas Funcionalidades
+
+- [ ] **Impresión de comprobantes** (PDF/Físico)
+- [ ] **Modo offline** con sincronización
+- [ ] **Geolocalización** de camiones en tiempo real
+- [ ] **Push notifications remotas** desde servidor
+- [ ] **Autenticación** de usuarios
+- [ ] **Roles y permisos** diferenciados
+- [ ] **Dashboard** en tiempo real
+- [ ] **Backup automático** de datos
+
+## 🤝 Contribución
+
+Para contribuir al proyecto:
+
+1. Fork el repositorio
+2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit tus cambios (`git commit -am 'Agregar nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Crea un Pull Request
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+## 📞 Contacto
+
+Para soporte técnico o consultas sobre el proyecto, contactar al equipo de desarrollo.
+
+---
+
+**Desarrollado con ❤️ para Transportes Ultrarrápidos**
+**Ahora con Scanner 📷 y Notificaciones 🔔**

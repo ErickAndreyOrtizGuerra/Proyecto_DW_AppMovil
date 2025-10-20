@@ -19,15 +19,22 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import transporteApi from '../services/transporteApi';
 import StableFormInput from '../components/StableFormInput';
+import notificationService from '../services/notificationService';
+import ComprobanteImpresion from '../components/ComprobanteImpresion';
+import qrService from '../services/qrService';
 
 const { width } = Dimensions.get('window');
 
-const IngresoEgresoScreen = () => {
+const IngresoEgresoScreen = ({ navigation }) => {
   const [camiones, setCamiones] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [tipoMovimiento, setTipoMovimiento] = useState('ingreso'); // 'ingreso' o 'egreso'
   const [camionSeleccionado, setCamionSeleccionado] = useState(null);
   const [movimientos, setMovimientos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [comprobanteVisible, setComprobanteVisible] = useState(false);
+  const [movimientoParaComprobante, setMovimientoParaComprobante] = useState(null);
+  const [tipoComprobanteActual, setTipoComprobanteActual] = useState('ingreso');
   const [formData, setFormData] = useState({
     placa: '',
     piloto: '',
@@ -40,7 +47,17 @@ const IngresoEgresoScreen = () => {
   useEffect(() => {
     cargarCamiones();
     cargarMovimientos();
+    initializeNotifications();
   }, []);
+
+  const initializeNotifications = async () => {
+    try {
+      await notificationService.initialize();
+      console.log('Servicio de notificaciones inicializado');
+    } catch (error) {
+      console.error('Error inicializando notificaciones:', error);
+    }
+  };
 
   const cargarCamiones = async () => {
     try {
@@ -91,7 +108,7 @@ const IngresoEgresoScreen = () => {
     });
   };
 
-  const registrarMovimiento = () => {
+  const registrarMovimiento = async () => {
     if (!formData.placa || !formData.piloto) {
       Alert.alert('Error', 'Placa y piloto son campos obligatorios');
       return;
@@ -106,16 +123,151 @@ const IngresoEgresoScreen = () => {
 
     setMovimientos([nuevoMovimiento, ...movimientos]);
     setModalVisible(false);
-    Alert.alert('Éxito', `${tipoMovimiento === 'ingreso' ? 'Ingreso' : 'Egreso'} registrado correctamente`);
+    
+    // Enviar notificación
+    if (tipoMovimiento === 'ingreso') {
+      await notificationService.notifyIngresoRegistrado(nuevoMovimiento);
+    } else {
+      await notificationService.notifyEgresoRegistrado(nuevoMovimiento);
+    }
+    
+    // Mostrar alerta con opción de imprimir comprobante
+    Alert.alert(
+      '✅ Registro Exitoso',
+      `${tipoMovimiento === 'ingreso' ? 'Ingreso' : 'Egreso'} registrado correctamente`,
+      [
+        { text: 'Cerrar', style: 'cancel' },
+        {
+          text: '📄 Generar PDF',
+          onPress: () => mostrarComprobante(nuevoMovimiento, tipoMovimiento)
+        }
+      ]
+    );
+  };
+
+  const mostrarComprobante = (movimiento, tipo) => {
+    setMovimientoParaComprobante(movimiento);
+    setTipoComprobanteActual(tipo);
+    setComprobanteVisible(true);
   };
 
   const seleccionarCamion = (camion) => {
     setFormData({
       ...formData,
-      placa: camion.placa,
-      piloto: formData.piloto
+      placa: camion.placa
     });
     setCamionSeleccionado(camion);
+  };
+
+  const handleScanResult = async (scannedData) => {
+    try {
+      // Validar datos escaneados usando el servicio QR
+      const validation = qrService.validateScanData(scannedData);
+      
+      if (!validation.valid) {
+        Alert.alert('❌ Código No Válido', validation.error);
+        return;
+      }
+      
+      let placaIdentificada = validation.placa;
+      let camionEncontrado = qrService.findCamionByPlate(camiones, placaIdentificada);
+      
+      if (validation.type === 'qr') {
+        // Es un código QR de camión con datos completos
+        const qrData = validation.data;
+        
+        if (camionEncontrado) {
+          // Auto-completar con datos del QR y la base de datos
+          setFormData({
+            ...formData,
+            placa: camionEncontrado.placa,
+            piloto: qrData.piloto || camionEncontrado.piloto || ''
+          });
+          setCamionSeleccionado(camionEncontrado);
+          
+          Alert.alert(
+            '✅ Camión Identificado por QR',
+            `🚛 ${camionEncontrado.placa} - ${camionEncontrado.marca} ${camionEncontrado.modelo}\n👤 Piloto: ${qrData.piloto || 'No especificado'}\n📊 Estado: ${camionEncontrado.estado}`,
+            [{ text: 'Continuar', style: 'default' }]
+          );
+        } else {
+          // QR válido pero camión no en base de datos
+          setFormData({
+            ...formData,
+            placa: qrData.placa,
+            piloto: qrData.piloto || ''
+          });
+          
+          Alert.alert(
+            '⚠️ Camión No Registrado',
+            `El QR es válido pero la placa ${qrData.placa} no está en el sistema.\nSe usarán los datos del QR.`,
+            [{ text: 'Continuar', style: 'default' }]
+          );
+        }
+      } else {
+        // Es una placa escaneada directamente
+        if (camionEncontrado) {
+          // Auto-completar con datos de la base de datos
+          setFormData({
+            ...formData,
+            placa: camionEncontrado.placa,
+            piloto: camionEncontrado.piloto || ''
+          });
+          setCamionSeleccionado(camionEncontrado);
+          
+          Alert.alert(
+            '✅ Placa Identificada',
+            `🚛 ${camionEncontrado.placa} - ${camionEncontrado.marca} ${camionEncontrado.modelo}\n👤 Piloto: ${camionEncontrado.piloto || 'No asignado'}\n📊 Estado: ${camionEncontrado.estado}`,
+            [{ text: 'Continuar', style: 'default' }]
+          );
+        } else {
+          // Placa válida pero no en base de datos
+          setFormData({
+            ...formData,
+            placa: placaIdentificada
+          });
+          
+          // Mostrar sugerencias si las hay
+          const sugerencias = qrService.getSimilarPlates(camiones, placaIdentificada);
+          const mensajeSugerencias = sugerencias.length > 0 
+            ? `\n\n🔍 Placas similares:\n${sugerencias.map(s => `• ${s.placa} (${s.descripcion})`).join('\n')}`
+            : '';
+          
+          Alert.alert(
+            '⚠️ Placa No Registrada',
+            `La placa ${placaIdentificada} no está en el sistema.${mensajeSugerencias}\n\n¿Continuar con registro manual?`,
+            [
+              { text: 'Cancelar', style: 'cancel' },
+              { text: 'Continuar', style: 'default' }
+            ]
+          );
+        }
+      }
+      
+      // Enviar notificación de escaneo exitoso
+      await notificationService.sendLocalNotification(
+        '📷 Escaneo Exitoso',
+        `${validation.type === 'qr' ? 'QR' : 'Placa'} identificada: ${placaIdentificada}`,
+        { 
+          type: 'scan_success', 
+          placa: placaIdentificada,
+          scanType: validation.type
+        }
+      );
+      
+    } catch (error) {
+      console.error('Error procesando escaneo:', error);
+      Alert.alert(
+        '❌ Error de Escaneo',
+        'No se pudo procesar el código escaneado. Intenta nuevamente.'
+      );
+    }
+  };
+
+  const abrirScanner = () => {
+    navigation.navigate('Scanner', {
+      onScanResult: handleScanResult
+    });
   };
 
   const MovimientoCard = ({ movimiento }) => (
@@ -164,6 +316,16 @@ const IngresoEgresoScreen = () => {
           <Text style={styles.infoValue}>{movimiento.tipoCarga}</Text>
         </View>
       </View>
+      
+      <View style={styles.movimientoFooter}>
+        <TouchableOpacity 
+          style={styles.printButton}
+          onPress={() => mostrarComprobante(movimiento, movimiento.tipo)}
+        >
+          <Ionicons name="print" size={16} color="white" />
+          <Text style={styles.printButtonText}>PDF</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -198,7 +360,7 @@ const IngresoEgresoScreen = () => {
                 autoCapitalize="characters"
               />
               
-              <Text style={styles.helperText}>Selecciona un camión activo:</Text>
+              <Text style={styles.helperText}>Selecciona un camión activo o usa el botón Scanner:</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.camionesScroll}>
                 {camiones.slice(0, 5).map((camion) => (
                   <TouchableOpacity
@@ -330,6 +492,14 @@ const IngresoEgresoScreen = () => {
           <Ionicons name="arrow-up-circle" size={24} color="white" />
           <Text style={styles.actionButtonText}>Registrar Egreso</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionButton, styles.scannerMainButton]}
+          onPress={abrirScanner}
+        >
+          <Ionicons name="scan" size={24} color="white" />
+          <Text style={styles.actionButtonText}>Scanner</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.content}>
@@ -353,6 +523,14 @@ const IngresoEgresoScreen = () => {
       </View>
 
       <ModalRegistro />
+      
+
+      <ComprobanteImpresion
+        visible={comprobanteVisible}
+        onClose={() => setComprobanteVisible(false)}
+        movimiento={movimientoParaComprobante}
+        tipo={tipoComprobanteActual}
+      />
     </View>
   );
 };
@@ -399,6 +577,9 @@ const styles = StyleSheet.create({
   },
   egresoButton: {
     backgroundColor: '#EF4444',
+  },
+  scannerMainButton: {
+    backgroundColor: '#8B5CF6',
   },
   actionButtonText: {
     color: 'white',
@@ -536,6 +717,30 @@ const styles = StyleSheet.create({
     height: 80,
     textAlignVertical: 'top',
   },
+  placaInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 12,
+    marginBottom: 16,
+  },
+  placaInputWrapper: {
+    flex: 1,
+  },
+  scannerButton: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 20, 
+  },
+  scannerButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
   helperText: {
     fontSize: 12,
     color: '#6B7280',
@@ -596,6 +801,27 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: 'white',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  movimientoFooter: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    alignItems: 'flex-end',
+  },
+  printButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E40AF',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    gap: 4,
+  },
+  printButtonText: {
+    color: 'white',
+    fontSize: 12,
     fontWeight: '600',
   },
 });

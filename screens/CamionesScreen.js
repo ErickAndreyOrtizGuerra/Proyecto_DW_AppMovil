@@ -112,137 +112,49 @@ const CamionesScreen = ({ navigation }) => {
     }
   };
 
-  const renderCamion = React.useCallback(({ item, index }) => (
-    <Card
-      style={styles.camionCard}
+  const renderCamion = ({ item }) => (
+    <TouchableOpacity
       onPress={() => navigation.navigate('CamionDetalle', { camion: item })}
-      shadow="large"
-      padding="lg"
+      style={styles.camionCard}
     >
-      <View style={styles.cardHeader}>
-        <View style={styles.placaContainer}>
-          <View style={[styles.tipoIconContainer, { backgroundColor: COLORS.transport.light }]}>
-            <Ionicons name={getTipoIcon(item.tipo)} size={28} color={COLORS.transport.primary} />
+      <Card style={styles.cardContent}>
+        <View style={styles.camionHeader}>
+          <View style={styles.placaBadge}>
+            <Text style={styles.placaText}>{item.placa}</Text>
           </View>
-          <View style={styles.placaInfo}>
-            <Heading level={4} color={COLORS.secondary[900]}>{item.placa}</Heading>
-            <Caption color={COLORS.secondary[500]}>{item.marca} {item.modelo}</Caption>
-          </View>
-        </View>
-        <View style={[styles.estadoBadge, { backgroundColor: getEstadoColor(item.estado) }]}>
-          <Ionicons name={getEstadoIcon(item.estado)} size={14} color={COLORS.white} />
-          <Caption color={COLORS.white} style={styles.estadoText}>
-            {item.estado.replace('_', ' ').toUpperCase()}
-          </Caption>
-        </View>
-      </View>
-
-      <View style={styles.divider} />
-
-      <View style={styles.cardBody}>
-        <View style={styles.infoGrid}>
-          <View style={styles.infoItem}>
-            <View style={styles.infoIconContainer}>
-              <Ionicons name="calendar-outline" size={16} color={COLORS.secondary[400]} />
-            </View>
-            <View style={styles.infoContent}>
-              <Caption color={COLORS.secondary[400]}>Año</Caption>
-              <Body size="sm" weight="medium" color={COLORS.secondary[700]}>{item.año}</Body>
-            </View>
-          </View>
-          
-          <View style={styles.infoItem}>
-            <View style={styles.infoIconContainer}>
-              <Ionicons name="scale-outline" size={16} color={COLORS.secondary[400]} />
-            </View>
-            <View style={styles.infoContent}>
-              <Caption color={COLORS.secondary[400]}>Capacidad</Caption>
-              <Body size="sm" weight="medium" color={COLORS.secondary[700]}>{item.capacidad} ton</Body>
-            </View>
+          <View style={[
+            styles.estadoBadge,
+            { backgroundColor: getEstadoColor(item.estado) }
+          ]}>
+            <Text style={styles.estadoText}>{item.estado.toUpperCase()}</Text>
           </View>
         </View>
         
-        <View style={styles.transportistaContainer}>
-          <View style={styles.transportistaIcon}>
-            <Ionicons name="business-outline" size={16} color={COLORS.secondary[400]} />
-          </View>
-          <View style={styles.transportistaInfo}>
-            <Caption color={COLORS.secondary[400]}>Transportista</Caption>
-            <Body size="sm" weight="medium" color={COLORS.secondary[700]} numberOfLines={1}>
-              {item.transportista.nombre}
-            </Body>
-          </View>
+        <View style={styles.camionInfo}>
+          <Heading size="lg" weight="semibold" color={COLORS.secondary[800]}>
+            {item.marca} {item.modelo}
+          </Heading>
+          <Body size="sm" color={COLORS.secondary[600]}>
+            Año: {item.año} • Capacidad: {item.capacidad}
+          </Body>
+          <Body size="sm" color={COLORS.secondary[600]}>
+            Piloto: {item.piloto || 'No asignado'}
+          </Body>
         </View>
-      </View>
+      </Card>
+    </TouchableOpacity>
+  );
 
-      <View style={styles.cardFooter}>
-        <View style={styles.tipoContainer}>
-          <View style={[styles.tipoBadge, { backgroundColor: COLORS.secondary[100] }]}>
-            <Body size="xs" weight="medium" color={COLORS.secondary[600]}>
-              {item.tipo.toUpperCase()}
-            </Body>
-          </View>
-        </View>
-        <TouchableOpacity style={styles.detailsButton}>
-          <Body size="sm" weight="semibold" color={COLORS.transport.primary}>Ver detalles</Body>
-          <Ionicons name="chevron-forward" size={16} color={COLORS.transport.primary} />
-        </TouchableOpacity>
-      </View>
-    </Card>
-  ), [navigation]);
 
   const FiltroModal = () => (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={filtroModalVisible}
-      onRequestClose={() => setFiltroModalVisible(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Filtrar por Estado</Text>
-          
-          {['todos', 'activo', 'mantenimiento', 'fuera_servicio'].map((estado) => (
-            <TouchableOpacity
-              key={estado}
-              style={[
-                styles.filtroOption,
-                filtroActivo === estado && styles.filtroOptionActive
-              ]}
-              onPress={() => {
-                setFiltroActivo(estado);
-                setFiltroModalVisible(false);
-              }}
-            >
-              <Text style={[
-                styles.filtroOptionText,
-                filtroActivo === estado && styles.filtroOptionTextActive
-              ]}>
-                {estado === 'todos' ? 'Todos los camiones' : estado.replace('_', ' ')}
-              </Text>
-              {filtroActivo === estado && (
-                <Ionicons name="checkmark" size={20} color="#1E40AF" />
-              )}
-            </TouchableOpacity>
-          ))}
-          
-          <TouchableOpacity
-            style={styles.modalCloseButton}
-            onPress={() => setFiltroModalVisible(false)}
-          >
-            <Text style={styles.modalCloseText}>Cerrar</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
+    <View>
+      {/* Modal de filtros - implementar según necesidades */}
+    </View>
   );
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <View style={styles.headerIcon}>
-          <Ionicons name="car-sport" size={32} color={COLORS.transport.primary} />
-        </View>
         <ActivityIndicator size="large" color={COLORS.transport.primary} />
         <Body size="lg" weight="medium" color={COLORS.secondary[600]}>
           Cargando flota de camiones...
@@ -253,25 +165,28 @@ const CamionesScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.transport.primary} />
-      
       <LinearGradient
-        colors={GRADIENTS.transport}
+        colors={[COLORS.transport.primary, COLORS.transport.secondary]}
         style={styles.header}
       >
         <View style={styles.headerContent}>
-          <View style={styles.headerTop}>
-            <View style={styles.headerIcon}>
-              <Ionicons name="car-sport" size={32} color={COLORS.white} />
-            </View>
-            <View style={styles.headerText}>
-              <Heading level={2} color={COLORS.white}>Flota de Camiones</Heading>
-              <Body size="base" color={COLORS.primary[100]}>
-                {camionesFiltrados.length} de {camiones.length} vehículos
-              </Body>
-            </View>
+          <View style={styles.headerText}>
+            <Heading size="xl" color={COLORS.white} weight="bold">
+              Flota de Camiones
+            </Heading>
+            <Body size="base" color={COLORS.primary[100]}>
+              Gestión y control de vehículos
+            </Body>
           </View>
-          
+          <TouchableOpacity 
+            style={styles.qrButton}
+            onPress={() => navigation.navigate('QRGenerator')}
+          >
+            <Ionicons name="qr-code" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+        
+        <View style={styles.statsContainer}>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Body size="lg" weight="bold" color={COLORS.white}>
@@ -314,6 +229,11 @@ const CamionesScreen = ({ navigation }) => {
             onPress={() => setFiltroModalVisible(true)}
             style={styles.filterButton}
           />
+          <View style={styles.countContainer}>
+            <Body size="sm" color={COLORS.secondary[600]}>
+              {camionesFiltrados.length} de {camiones.length} vehículos
+            </Body>
+          </View>
         </View>
       </KeyboardAvoidingView>
 
@@ -331,16 +251,14 @@ const CamionesScreen = ({ navigation }) => {
         windowSize={10}
         initialNumToRender={8}
         getItemLayout={(data, index) => ({
-          length: 200,
-          offset: 200 * index,
+          length: 120,
+          offset: 120 * index,
           index,
         })}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <View style={[styles.headerIcon, { backgroundColor: COLORS.secondary[100] }]}>
-              <Ionicons name="car-outline" size={32} color={COLORS.secondary[400]} />
-            </View>
-            <Heading level={4} color={COLORS.secondary[600]}>
+            <Ionicons name="car-sport-outline" size={64} color={COLORS.secondary[300]} />
+            <Heading size="lg" color={COLORS.secondary[500]} style={styles.emptyTitle}>
               No se encontraron camiones
             </Heading>
             <Body size="base" color={COLORS.secondary[400]} style={styles.emptySubtext}>
@@ -360,151 +278,86 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.secondary[50],
   },
-  
   header: {
     paddingTop: 50,
     paddingBottom: SPACING['3xl'],
-    paddingHorizontal: SPACING.xl,
-    borderBottomLeftRadius: BORDERS.radius['3xl'],
-    borderBottomRightRadius: BORDERS.radius['3xl'],
-  },
-  
-  headerContent: {
-    gap: SPACING.xl,
-  },
-  
-  headerTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.lg,
-  },
-  
-  headerIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: BORDERS.radius.xl,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  
-  headerText: {
-    flex: 1,
-    gap: SPACING.xs,
-  },
-  
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: BORDERS.radius.xl,
-    paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.lg,
   },
-  
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: SPACING.xs,
-  },
-  
-  statDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  searchSection: {
-    backgroundColor: COLORS.secondary[50],
-  },
-  
-  filterContainer: {
-    alignItems: 'center',
-    paddingHorizontal: SPACING.xl,
-    paddingBottom: SPACING.lg,
-  },
-  
-  filterButton: {
-    minWidth: 48,
-  },
-  listContainer: {
-    paddingHorizontal: SPACING.xl,
-    paddingBottom: SPACING['6xl'],
-    gap: SPACING.lg,
-  },
-  
-  camionCard: {
-    marginBottom: SPACING.lg,
-  },
-  
-  cardHeader: {
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: SPACING.lg,
   },
-  
-  placaContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.md,
+  headerText: {
     flex: 1,
   },
-  
-  tipoIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: BORDERS.radius.xl,
+  qrButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: SPACING.md,
   },
-  
-  placaInfo: {
+  statsContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: BORDERS.radius.lg,
+    padding: SPACING.md,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  statItem: {
+    alignItems: 'center',
     flex: 1,
-    gap: SPACING.xs,
   },
-  
-  estadoBadge: {
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  searchSection: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+  },
+  filterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: SPACING.md,
+  },
+  filterButton: {
+    minWidth: 100,
+  },
+  countContainer: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  listContainer: {
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING['2xl'],
+  },
+  camionCard: {
+    marginBottom: SPACING.md,
+  },
+  cardContent: {
+    padding: SPACING.lg,
+  },
+  camionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  placaBadge: {
+    backgroundColor: COLORS.transport.primary,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
-    borderRadius: BORDERS.radius.lg,
-    gap: SPACING.xs,
-  },
-  
-  estadoText: {
-    fontWeight: TYPOGRAPHY.weights.semibold,
-  },
-  
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.secondary[200],
-    marginBottom: SPACING.lg,
-  },
-  cardBody: {
-    gap: SPACING.lg,
-    marginBottom: SPACING.lg,
-  },
-  
-  infoGrid: {
-    flexDirection: 'row',
-    gap: SPACING.xl,
-  },
-  
-  infoItem: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-  },
-  
-  infoIconContainer: {
-    width: 32,
-    height: 32,
     borderRadius: BORDERS.radius.md,
-    backgroundColor: COLORS.secondary[100],
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   
   infoContent: {

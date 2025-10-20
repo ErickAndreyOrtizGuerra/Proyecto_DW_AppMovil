@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import ordenesService from './services/ordenesService';
+import backgroundTasksService from './services/backgroundTasks';
 
 // Importar pantallas
 import CamionesScreen from './screens/CamionesScreen';
@@ -13,6 +15,10 @@ import EstadisticasScreen from './screens/EstadisticasScreen';
 import IngresoEgresoScreen from './screens/IngresoEgresoScreen';
 import ValesCombustibleScreen from './screens/ValesCombustibleScreen';
 import ReportesScreen from './screens/ReportesScreen';
+import NotificacionesScreen from './screens/NotificacionesScreen';
+import OrdenesScreen from './screens/OrdenesScreen';
+import QRGeneratorScreen from './screens/QRGeneratorScreen';
+import ScannerScreen from './screens/ScannerScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -39,8 +45,65 @@ const CamionesStack = () => {
         },
       }}
     >
-      <Stack.Screen name="CamionesList" component={CamionesScreen} />
+      <Stack.Screen name="Camiones" component={CamionesScreen} />
       <Stack.Screen name="CamionDetalle" component={CamionDetalleScreen} />
+      <Stack.Screen name="QRGenerator" component={QRGeneratorScreen} />
+    </Stack.Navigator>
+  );
+};
+
+// Stack Navigator para Movimientos (incluye scanner)
+const MovimientosStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyleInterpolator: ({ current, layouts }) => {
+          return {
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          };
+        },
+      }}
+    >
+      <Stack.Screen name="MovimientosList" component={IngresoEgresoScreen} />
+      <Stack.Screen name="Scanner" component={ScannerScreen} />
+    </Stack.Navigator>
+  );
+};
+
+// Stack Navigator para Reportes (incluye notificaciones)
+const ReportesStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyleInterpolator: ({ current, layouts }) => {
+          return {
+            cardStyle: {
+              transform: [
+                {
+                  translateX: current.progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [layouts.screen.width, 0],
+                  }),
+                },
+              ],
+            },
+          };
+        },
+      }}
+    >
+      <Stack.Screen name="ReportesList" component={ReportesScreen} />
+      <Stack.Screen name="Notificaciones" component={NotificacionesScreen} />
     </Stack.Navigator>
   );
 };
@@ -62,6 +125,9 @@ const getTabBarIcon = (route, focused, color, size) => {
     case 'Transportistas':
       iconName = focused ? 'people' : 'people-outline';
       break;
+    case 'Ordenes':
+      iconName = focused ? 'document-text' : 'document-text-outline';
+      break;
     case 'Reportes':
       iconName = focused ? 'bar-chart' : 'bar-chart-outline';
       break;
@@ -74,6 +140,26 @@ const getTabBarIcon = (route, focused, color, size) => {
 
 // Componente principal de la aplicación
 export default function App() {
+  useEffect(() => {
+    // Inicializar servicios al cargar la app
+    const initializeServices = async () => {
+      try {
+        await ordenesService.initialize();
+        backgroundTasksService.start();
+        console.log('Servicios inicializados correctamente');
+      } catch (error) {
+        console.error('Error inicializando servicios:', error);
+      }
+    };
+
+    initializeServices();
+
+    // Cleanup al desmontar la app
+    return () => {
+      backgroundTasksService.stop();
+    };
+  }, []);
+
   return (
     <NavigationContainer>
       <StatusBar style="light" backgroundColor="#1E40AF" />
@@ -119,7 +205,7 @@ export default function App() {
         />
         <Tab.Screen 
           name="Movimientos" 
-          component={IngresoEgresoScreen}
+          component={MovimientosStack}
           options={{
             tabBarLabel: 'Movimientos',
           }}
@@ -139,8 +225,15 @@ export default function App() {
           }}
         />
         <Tab.Screen 
+          name="Ordenes" 
+          component={OrdenesScreen}
+          options={{
+            tabBarLabel: 'Órdenes',
+          }}
+        />
+        <Tab.Screen 
           name="Reportes" 
-          component={ReportesScreen}
+          component={ReportesStack}
           options={{
             tabBarLabel: 'Reportes',
           }}

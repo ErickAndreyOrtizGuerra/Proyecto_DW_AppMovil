@@ -5,44 +5,39 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-  RefreshControl,
   Alert,
   TextInput,
   Modal,
   Dimensions,
-  KeyboardAvoidingView,
-  Platform
+  Platform,
+  Keyboard
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import transporteApi from '../services/transporteApi';
-import StableFormInput from '../components/StableFormInput';
 import notificationService from '../services/notificationService';
 import ComprobanteImpresion from '../components/ComprobanteImpresion';
 import qrService from '../services/qrService';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const IngresoEgresoScreen = ({ navigation }) => {
   const [camiones, setCamiones] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [tipoMovimiento, setTipoMovimiento] = useState('ingreso'); // 'ingreso' o 'egreso'
+  const [tipoMovimiento, setTipoMovimiento] = useState('ingreso');
   const [camionSeleccionado, setCamionSeleccionado] = useState(null);
   const [movimientos, setMovimientos] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [comprobanteVisible, setComprobanteVisible] = useState(false);
   const [movimientoParaComprobante, setMovimientoParaComprobante] = useState(null);
   const [tipoComprobanteActual, setTipoComprobanteActual] = useState('ingreso');
-  const [formData, setFormData] = useState({
-    placa: '',
-    piloto: '',
-    origen: '',
-    destino: '',
-    tipoCarga: '',
-    observaciones: ''
-  });
+  
+  // Estados separados para cada campo
+  const [placa, setPlaca] = useState('');
+  const [piloto, setPiloto] = useState('');
+  const [origen, setOrigen] = useState('');
+  const [destino, setDestino] = useState('');
+  const [tipoCarga, setTipoCarga] = useState('');
+  const [observaciones, setObservaciones] = useState('');
 
   useEffect(() => {
     cargarCamiones();
@@ -53,7 +48,6 @@ const IngresoEgresoScreen = ({ navigation }) => {
   const initializeNotifications = async () => {
     try {
       await notificationService.initialize();
-      console.log('Servicio de notificaciones inicializado');
     } catch (error) {
       console.error('Error inicializando notificaciones:', error);
     }
@@ -69,7 +63,6 @@ const IngresoEgresoScreen = ({ navigation }) => {
   };
 
   const cargarMovimientos = () => {
-    // Simulamos movimientos recientes (en una app real vendría de la API)
     const movimientosSimulados = [
       {
         id: 1,
@@ -97,26 +90,34 @@ const IngresoEgresoScreen = ({ navigation }) => {
 
   const abrirModal = (tipo) => {
     setTipoMovimiento(tipo);
+    limpiarFormulario();
     setModalVisible(true);
-    setFormData({
-      placa: '',
-      piloto: '',
-      origen: '',
-      destino: '',
-      tipoCarga: '',
-      observaciones: ''
-    });
+  };
+
+  const limpiarFormulario = () => {
+    setPlaca('');
+    setPiloto('');
+    setOrigen('');
+    setDestino('');
+    setTipoCarga('');
+    setObservaciones('');
+    setCamionSeleccionado(null);
   };
 
   const registrarMovimiento = async () => {
-    if (!formData.placa || !formData.piloto) {
+    if (!placa || !piloto) {
       Alert.alert('Error', 'Placa y piloto son campos obligatorios');
       return;
     }
 
     const nuevoMovimiento = {
       id: Date.now(),
-      ...formData,
+      placa,
+      piloto,
+      origen,
+      destino,
+      tipoCarga,
+      observaciones,
       tipo: tipoMovimiento,
       fecha: new Date().toISOString()
     };
@@ -124,14 +125,12 @@ const IngresoEgresoScreen = ({ navigation }) => {
     setMovimientos([nuevoMovimiento, ...movimientos]);
     setModalVisible(false);
     
-    // Enviar notificación
     if (tipoMovimiento === 'ingreso') {
       await notificationService.notifyIngresoRegistrado(nuevoMovimiento);
     } else {
       await notificationService.notifyEgresoRegistrado(nuevoMovimiento);
     }
     
-    // Mostrar alerta con opción de imprimir comprobante
     Alert.alert(
       '✅ Registro Exitoso',
       `${tipoMovimiento === 'ingreso' ? 'Ingreso' : 'Egreso'} registrado correctamente`,
@@ -152,16 +151,12 @@ const IngresoEgresoScreen = ({ navigation }) => {
   };
 
   const seleccionarCamion = (camion) => {
-    setFormData({
-      ...formData,
-      placa: camion.placa
-    });
+    setPlaca(camion.placa);
     setCamionSeleccionado(camion);
   };
 
   const handleScanResult = async (scannedData) => {
     try {
-      // Validar datos escaneados usando el servicio QR
       const validation = qrService.validateScanData(scannedData);
       
       if (!validation.valid) {
@@ -173,16 +168,11 @@ const IngresoEgresoScreen = ({ navigation }) => {
       let camionEncontrado = qrService.findCamionByPlate(camiones, placaIdentificada);
       
       if (validation.type === 'qr') {
-        // Es un código QR de camión con datos completos
         const qrData = validation.data;
         
         if (camionEncontrado) {
-          // Auto-completar con datos del QR y la base de datos
-          setFormData({
-            ...formData,
-            placa: camionEncontrado.placa,
-            piloto: qrData.piloto || camionEncontrado.piloto || ''
-          });
+          setPlaca(camionEncontrado.placa);
+          setPiloto(qrData.piloto || camionEncontrado.piloto || '');
           setCamionSeleccionado(camionEncontrado);
           
           Alert.alert(
@@ -191,12 +181,8 @@ const IngresoEgresoScreen = ({ navigation }) => {
             [{ text: 'Continuar', style: 'default' }]
           );
         } else {
-          // QR válido pero camión no en base de datos
-          setFormData({
-            ...formData,
-            placa: qrData.placa,
-            piloto: qrData.piloto || ''
-          });
+          setPlaca(qrData.placa);
+          setPiloto(qrData.piloto || '');
           
           Alert.alert(
             '⚠️ Camión No Registrado',
@@ -205,14 +191,9 @@ const IngresoEgresoScreen = ({ navigation }) => {
           );
         }
       } else {
-        // Es una placa escaneada directamente
         if (camionEncontrado) {
-          // Auto-completar con datos de la base de datos
-          setFormData({
-            ...formData,
-            placa: camionEncontrado.placa,
-            piloto: camionEncontrado.piloto || ''
-          });
+          setPlaca(camionEncontrado.placa);
+          setPiloto(camionEncontrado.piloto || '');
           setCamionSeleccionado(camionEncontrado);
           
           Alert.alert(
@@ -221,13 +202,8 @@ const IngresoEgresoScreen = ({ navigation }) => {
             [{ text: 'Continuar', style: 'default' }]
           );
         } else {
-          // Placa válida pero no en base de datos
-          setFormData({
-            ...formData,
-            placa: placaIdentificada
-          });
+          setPlaca(placaIdentificada);
           
-          // Mostrar sugerencias si las hay
           const sugerencias = qrService.getSimilarPlates(camiones, placaIdentificada);
           const mensajeSugerencias = sugerencias.length > 0 
             ? `\n\n🔍 Placas similares:\n${sugerencias.map(s => `• ${s.placa} (${s.descripcion})`).join('\n')}`
@@ -244,7 +220,6 @@ const IngresoEgresoScreen = ({ navigation }) => {
         }
       }
       
-      // Enviar notificación de escaneo exitoso
       await notificationService.sendLocalNotification(
         '📷 Escaneo Exitoso',
         `${validation.type === 'qr' ? 'QR' : 'Placa'} identificada: ${placaIdentificada}`,
@@ -329,143 +304,6 @@ const IngresoEgresoScreen = ({ navigation }) => {
     </View>
   );
 
-  const ModalRegistro = () => (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={() => setModalVisible(false)}
-    >
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.modalOverlay}
-      >
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
-              Registrar {tipoMovimiento === 'ingreso' ? 'Ingreso' : 'Egreso'}
-            </Text>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Ionicons name="close" size={24} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView style={styles.modalBody} keyboardShouldPersistTaps="handled">
-            <View style={styles.inputGroup}>
-              <StableFormInput
-                label="Placa del Camión *"
-                value={formData.placa}
-                onChangeText={(text) => setFormData({...formData, placa: text})}
-                placeholder="Ej: P-001AAA"
-                autoCapitalize="characters"
-              />
-              
-              <Text style={styles.helperText}>Selecciona un camión activo o usa el botón Scanner:</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.camionesScroll}>
-                {camiones.slice(0, 5).map((camion) => (
-                  <TouchableOpacity
-                    key={camion.id}
-                    style={[
-                      styles.camionChip,
-                      formData.placa === camion.placa && styles.camionChipSelected
-                    ]}
-                    onPress={() => seleccionarCamion(camion)}
-                  >
-                    <Text style={[
-                      styles.camionChipText,
-                      formData.placa === camion.placa && styles.camionChipTextSelected
-                    ]}>
-                      {camion.placa}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Nombre del Piloto *</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.piloto}
-                onChangeText={(text) => setFormData({...formData, piloto: text})}
-                placeholder="Nombre completo del piloto"
-                autoCorrect={false}
-                autoCapitalize="words"
-                returnKeyType="next"
-                blurOnSubmit={false}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>
-                {tipoMovimiento === 'ingreso' ? 'Origen' : 'Destino'}
-              </Text>
-              <TextInput
-                style={styles.textInput}
-                value={tipoMovimiento === 'ingreso' ? formData.origen : formData.destino}
-                onChangeText={(text) => setFormData({
-                  ...formData,
-                  [tipoMovimiento === 'ingreso' ? 'origen' : 'destino']: text
-                })}
-                placeholder={tipoMovimiento === 'ingreso' ? 'Lugar de origen' : 'Lugar de destino'}
-                autoCorrect={false}
-                autoCapitalize="words"
-                returnKeyType="next"
-                blurOnSubmit={false}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Tipo de Carga</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.tipoCarga}
-                onChangeText={(text) => setFormData({...formData, tipoCarga: text})}
-                placeholder="Ej: Contenedores, Carga general, etc."
-                autoCorrect={false}
-                autoCapitalize="words"
-                returnKeyType="next"
-                blurOnSubmit={false}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Observaciones</Text>
-              <TextInput
-                style={[styles.textInput, styles.textArea]}
-                value={formData.observaciones}
-                onChangeText={(text) => setFormData({...formData, observaciones: text})}
-                placeholder="Observaciones adicionales..."
-                multiline
-                numberOfLines={3}
-                autoCorrect={false}
-                returnKeyType="done"
-                blurOnSubmit={false}
-              />
-            </View>
-          </ScrollView>
-
-          <View style={styles.modalFooter}>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.saveButton}
-              onPress={registrarMovimiento}
-            >
-              <Ionicons name="checkmark" size={20} color="white" />
-              <Text style={styles.saveButtonText}>Registrar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -522,9 +360,158 @@ const IngresoEgresoScreen = ({ navigation }) => {
         </ScrollView>
       </View>
 
-      <ModalRegistro />
-      
+      {/* MODAL COMPLETAMENTE REDISEÑADO */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          {/* Header del Modal */}
+          <LinearGradient
+            colors={['#1E40AF', '#3B82F6']}
+            style={styles.modalHeaderGradient}
+          >
+            <View style={styles.modalHeaderContent}>
+              <Text style={styles.modalHeaderTitle}>
+                {tipoMovimiento === 'ingreso' ? '📥 Registrar Ingreso' : '📤 Registrar Egreso'}
+              </Text>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Ionicons name="close" size={28} color="white" />
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
 
+          {/* Contenido del formulario */}
+          <ScrollView
+            style={styles.modalScrollView}
+            contentContainerStyle={styles.modalScrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Placa */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Placa del Camión *</Text>
+              <TextInput
+                style={styles.fieldInput}
+                value={placa}
+                onChangeText={(text) => setPlaca(text)}
+                placeholder="Ej: P-001AAA"
+                placeholderTextColor="#9CA3AF"
+                autoCapitalize="characters"
+              />
+            </View>
+
+            {/* Chips de camiones */}
+            <View style={styles.chipsContainer}>
+              <Text style={styles.chipsLabel}>Camiones disponibles:</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chipsScrollContent}
+              >
+                {camiones.slice(0, 8).map((camion) => (
+                  <TouchableOpacity
+                    key={camion.id}
+                    style={[
+                      styles.chip,
+                      placa === camion.placa && styles.chipSelected
+                    ]}
+                    onPress={() => seleccionarCamion(camion)}
+                  >
+                    <Text style={[
+                      styles.chipText,
+                      placa === camion.placa && styles.chipTextSelected
+                    ]}>
+                      {camion.placa}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Piloto */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Nombre del Piloto *</Text>
+              <TextInput
+                style={styles.fieldInput}
+                value={piloto}
+                onChangeText={(text) => setPiloto(text)}
+                placeholder="Nombre completo"
+                placeholderTextColor="#9CA3AF"
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Origen/Destino */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>
+                {tipoMovimiento === 'ingreso' ? 'Origen' : 'Destino'}
+              </Text>
+              <TextInput
+                style={styles.fieldInput}
+                value={tipoMovimiento === 'ingreso' ? origen : destino}
+                onChangeText={(text) => tipoMovimiento === 'ingreso' ? setOrigen(text) : setDestino(text)}
+                placeholder={tipoMovimiento === 'ingreso' ? 'Lugar de origen' : 'Lugar de destino'}
+                placeholderTextColor="#9CA3AF"
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Tipo de Carga */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Tipo de Carga</Text>
+              <TextInput
+                style={styles.fieldInput}
+                value={tipoCarga}
+                onChangeText={(text) => setTipoCarga(text)}
+                placeholder="Ej: Contenedores, Carga general"
+                placeholderTextColor="#9CA3AF"
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Observaciones */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Observaciones</Text>
+              <TextInput
+                style={[styles.fieldInput, styles.fieldTextArea]}
+                value={observaciones}
+                onChangeText={(text) => setObservaciones(text)}
+                placeholder="Observaciones adicionales..."
+                placeholderTextColor="#9CA3AF"
+                multiline={true}
+                numberOfLines={4}
+              />
+            </View>
+
+            <View style={{ height: 100 }} />
+          </ScrollView>
+
+          {/* Footer con botones */}
+          <View style={styles.modalFooterFixed}>
+            <TouchableOpacity
+              style={styles.btnCancel}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.btnCancelText}>Cancelar</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.btnSave}
+              onPress={registrarMovimiento}
+            >
+              <Ionicons name="checkmark-circle" size={22} color="white" />
+              <Text style={styles.btnSaveText}>Registrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      
       <ComprobanteImpresion
         visible={comprobanteVisible}
         onClose={() => setComprobanteVisible(false)}
@@ -667,145 +654,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    width: width * 0.9,
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1F2937',
-  },
-  modalBody: {
-    padding: 20,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: '#1F2937',
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  placaInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 12,
-    marginBottom: 16,
-  },
-  placaInputWrapper: {
-    flex: 1,
-  },
-  scannerButton: {
-    backgroundColor: '#3B82F6',
+  movimientoFooter: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 20, 
-  },
-  scannerButtonText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  helperText: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 5,
-    marginBottom: 10,
-  },
-  camionesScroll: {
-    marginTop: 5,
-  },
-  camionChip: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginRight: 8,
-  },
-  camionChipSelected: {
-    backgroundColor: '#1E40AF',
-  },
-  camionChipText: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '600',
-  },
-  camionChipTextSelected: {
-    color: 'white',
-  },
-  modalFooter: {
-    flexDirection: 'row',
-    padding: 20,
-    gap: 15,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-  },
-  cancelButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: '#6B7280',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  saveButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: '#1E40AF',
-    gap: 6,
-  },
-  saveButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  movimientoFooter: {
-    paddingHorizontal: 15,
-    paddingVertical: 10,
     borderTopWidth: 1,
     borderTopColor: '#F3F4F6',
     alignItems: 'flex-end',
@@ -814,15 +665,141 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#1E40AF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    gap: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
   },
   printButtonText: {
     color: 'white',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
+  },
+  
+  // ESTILOS DEL MODAL REDISEÑADO
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  modalHeaderGradient: {
+    paddingTop: Platform.OS === 'ios' ? 50 : 40,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+  },
+  modalHeaderContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalHeaderTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+    flex: 1,
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalScrollView: {
+    flex: 1,
+  },
+  modalScrollContent: {
+    padding: 20,
+  },
+  fieldContainer: {
+    marginBottom: 24,
+  },
+  fieldLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 10,
+  },
+  fieldInput: {
+    backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: '#1F2937',
+  },
+  fieldTextArea: {
+    height: 120,
+    paddingTop: 14,
+    textAlignVertical: 'top',
+  },
+  chipsContainer: {
+    marginBottom: 24,
+  },
+  chipsLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+    marginBottom: 12,
+  },
+  chipsScrollContent: {
+    paddingVertical: 4,
+  },
+  chip: {
+    backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  chipSelected: {
+    backgroundColor: '#1E40AF',
+    borderColor: '#1E40AF',
+  },
+  chipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  chipTextSelected: {
+    color: 'white',
+  },
+  modalFooterFixed: {
+    flexDirection: 'row',
+    padding: 20,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    gap: 12,
+  },
+  btnCancel: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+    alignItems: 'center',
+    backgroundColor: 'white',
+  },
+  btnCancelText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#6B7280',
+  },
+  btnSave: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    backgroundColor: '#1E40AF',
+    gap: 8,
+  },
+  btnSaveText: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: 'white',
   },
 });
 

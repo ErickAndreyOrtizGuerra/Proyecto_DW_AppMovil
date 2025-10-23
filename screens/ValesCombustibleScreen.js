@@ -8,7 +8,8 @@ import {
   TextInput,
   Alert,
   Modal,
-  Dimensions
+  Dimensions,
+  Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,14 +22,14 @@ const ValesCombustibleScreen = () => {
   const [vales, setVales] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [camiones, setCamiones] = useState([]);
-  const [formData, setFormData] = useState({
-    numeroOrden: '',
-    placa: '',
-    piloto: '',
-    camion: '',
-    cantidadGalones: '',
-    fechaHora: new Date().toISOString()
-  });
+  
+  // ⭐ ESTADOS SEPARADOS PARA CADA CAMPO - SOLUCIÓN AL PROBLEMA DEL TECLADO
+  const [numeroOrden, setNumeroOrden] = useState('');
+  const [placa, setPlaca] = useState('');
+  const [piloto, setPiloto] = useState('');
+  const [camion, setCamion] = useState('');
+  const [cantidadGalones, setCantidadGalones] = useState('');
+  const [fechaHora, setFechaHora] = useState(new Date().toISOString());
 
   useEffect(() => {
     cargarCamiones();
@@ -87,42 +88,44 @@ const ValesCombustibleScreen = () => {
     return `VC-${numero}-${fecha.getFullYear()}`;
   };
 
+  const limpiarFormulario = () => {
+    setPlaca('');
+    setPiloto('');
+    setCamion('');
+    setCantidadGalones('');
+    setFechaHora(new Date().toISOString());
+  };
+
   const abrirModal = () => {
-    setFormData({
-      numeroOrden: generarNumeroOrden(),
-      placa: '',
-      piloto: '',
-      camion: '',
-      cantidadGalones: '',
-      fechaHora: new Date().toISOString()
-    });
+    setNumeroOrden(generarNumeroOrden());
+    limpiarFormulario();
     setModalVisible(true);
   };
 
-  const seleccionarCamion = (camion) => {
-    setFormData({
-      ...formData,
-      placa: camion.placa,
-      camion: `${camion.marca} ${camion.modelo}`,
-      piloto: formData.piloto
-    });
+  const seleccionarCamion = (camionSeleccionado) => {
+    setPlaca(camionSeleccionado.placa);
+    setCamion(`${camionSeleccionado.marca} ${camionSeleccionado.modelo}`);
   };
 
   const emitirVale = async () => {
-    if (!formData.placa || !formData.piloto || !formData.cantidadGalones) {
+    if (!placa || !piloto || !cantidadGalones) {
       Alert.alert('Error', 'Todos los campos son obligatorios');
       return;
     }
 
-    if (isNaN(formData.cantidadGalones) || parseFloat(formData.cantidadGalones) <= 0) {
+    if (isNaN(cantidadGalones) || parseFloat(cantidadGalones) <= 0) {
       Alert.alert('Error', 'La cantidad de galones debe ser un número válido');
       return;
     }
 
     const nuevoVale = {
       id: Date.now(),
-      ...formData,
-      cantidadGalones: parseFloat(formData.cantidadGalones),
+      numeroOrden,
+      placa,
+      piloto,
+      camion,
+      cantidadGalones: parseFloat(cantidadGalones),
+      fechaHora,
       estado: 'emitido'
     };
 
@@ -132,7 +135,7 @@ const ValesCombustibleScreen = () => {
     // Enviar notificación
     await notificationService.notifyValeRegistrado(nuevoVale);
     
-    Alert.alert('Éxito', `Vale ${formData.numeroOrden} emitido correctamente`);
+    Alert.alert('Éxito', `Vale ${numeroOrden} emitido correctamente`);
   };
 
   const cambiarEstadoVale = (valeId) => {
@@ -219,133 +222,6 @@ const ValesCombustibleScreen = () => {
     </View>
   );
 
-  const ModalEmitirVale = () => (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={modalVisible}
-      onRequestClose={() => setModalVisible(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Emitir Vale de Combustible</Text>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Ionicons name="close" size={24} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView style={styles.modalBody}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Número de Orden</Text>
-              <TextInput
-                style={[styles.textInput, styles.readOnlyInput]}
-                value={formData.numeroOrden}
-                editable={false}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Placa del Camión *</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.placa}
-                onChangeText={(text) => setFormData({...formData, placa: text})}
-                placeholder="Ej: P-001AAA"
-                autoCapitalize="characters"
-                autoCorrect={false}
-                returnKeyType="next"
-                blurOnSubmit={false}
-              />
-              
-              <Text style={styles.helperText}>Selecciona un camión:</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.camionesScroll}>
-                {camiones.slice(0, 5).map((camion) => (
-                  <TouchableOpacity
-                    key={camion.id}
-                    style={[
-                      styles.camionChip,
-                      formData.placa === camion.placa && styles.camionChipSelected
-                    ]}
-                    onPress={() => seleccionarCamion(camion)}
-                  >
-                    <Text style={[
-                      styles.camionChipText,
-                      formData.placa === camion.placa && styles.camionChipTextSelected
-                    ]}>
-                      {camion.placa}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Nombre del Piloto *</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.piloto}
-                onChangeText={(text) => setFormData({...formData, piloto: text})}
-                placeholder="Nombre completo del piloto"
-                autoCorrect={false}
-                autoCapitalize="words"
-                returnKeyType="next"
-                blurOnSubmit={false}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Cantidad de Galones *</Text>
-              <TextInput
-                style={styles.textInput}
-                value={formData.cantidadGalones}
-                onChangeText={(text) => setFormData({...formData, cantidadGalones: text})}
-                placeholder="Ej: 45.5"
-                keyboardType="numeric"
-                autoCorrect={false}
-                returnKeyType="done"
-                blurOnSubmit={false}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Fecha y Hora</Text>
-              <TextInput
-                style={[styles.textInput, styles.readOnlyInput]}
-                value={new Date(formData.fechaHora).toLocaleString('es-GT')}
-                editable={false}
-              />
-            </View>
-          </ScrollView>
-
-          <View style={styles.modalFooter}>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.cancelButtonText}>Cancelar</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.saveButton}
-              onPress={emitirVale}
-            >
-              <Ionicons name="document-text" size={20} color="white" />
-              <Text style={styles.saveButtonText}>Emitir Vale</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-
-  const estadisticas = {
-    totalVales: vales.length,
-    valesEmitidos: vales.filter(v => v.estado === 'emitido').length,
-    valesUsados: vales.filter(v => v.estado === 'usado').length,
-    totalGalones: vales.reduce((sum, vale) => sum + vale.cantidadGalones, 0)
-  };
-
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -353,25 +229,23 @@ const ValesCombustibleScreen = () => {
         style={styles.header}
       >
         <Text style={styles.headerTitle}>⛽ Vales de Combustible</Text>
-        <Text style={styles.headerSubtitle}>Control de combustible por camión</Text>
+        <Text style={styles.headerSubtitle}>Control de abastecimiento</Text>
       </LinearGradient>
 
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{estadisticas.totalVales}</Text>
-          <Text style={styles.statLabel}>Total Vales</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{estadisticas.valesEmitidos}</Text>
+          <Text style={styles.statNumber}>{vales.filter(v => v.estado === 'emitido').length}</Text>
           <Text style={styles.statLabel}>Emitidos</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{estadisticas.valesUsados}</Text>
+          <Text style={styles.statNumber}>{vales.filter(v => v.estado === 'usado').length}</Text>
           <Text style={styles.statLabel}>Usados</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statNumber}>{estadisticas.totalGalones.toFixed(1)}</Text>
-          <Text style={styles.statLabel}>Galones</Text>
+          <Text style={styles.statNumber}>
+            {vales.reduce((sum, v) => sum + v.cantidadGalones, 0).toFixed(1)}
+          </Text>
+          <Text style={styles.statLabel}>Total Gal</Text>
         </View>
       </View>
 
@@ -386,7 +260,7 @@ const ValesCombustibleScreen = () => {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.sectionTitle}>Vales Recientes</Text>
+        <Text style={styles.sectionTitle}>Historial de Vales</Text>
         
         <ScrollView showsVerticalScrollIndicator={false}>
           {vales.map((vale) => (
@@ -405,7 +279,149 @@ const ValesCombustibleScreen = () => {
         </ScrollView>
       </View>
 
-      <ModalEmitirVale />
+      {/* MODAL CON PATRÓN DE ESTADOS SEPARADOS */}
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          {/* Header del Modal */}
+          <LinearGradient
+            colors={['#F59E0B', '#F97316']}
+            style={styles.modalHeaderGradient}
+          >
+            <View style={styles.modalHeaderContent}>
+              <Text style={styles.modalHeaderTitle}>⛽ Emitir Vale de Combustible</Text>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setModalVisible(false)}
+              >
+                <Ionicons name="close" size={28} color="white" />
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+
+          {/* Contenido del formulario */}
+          <ScrollView
+            style={styles.modalScrollView}
+            contentContainerStyle={styles.modalScrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Número de Orden */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Número de Orden</Text>
+              <TextInput
+                style={[styles.fieldInput, styles.readOnlyInput]}
+                value={numeroOrden}
+                editable={false}
+              />
+            </View>
+
+            {/* Placa */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Placa del Camión *</Text>
+              <TextInput
+                style={styles.fieldInput}
+                value={placa}
+                onChangeText={(text) => setPlaca(text)}
+                placeholder="Ej: P-001AAA"
+                placeholderTextColor="#9CA3AF"
+                autoCapitalize="characters"
+                autoCorrect={false}
+              />
+            </View>
+
+            {/* Chips de camiones */}
+            <View style={styles.chipsContainer}>
+              <Text style={styles.chipsLabel}>Camiones disponibles:</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chipsScrollContent}
+              >
+                {camiones.slice(0, 8).map((camionItem) => (
+                  <TouchableOpacity
+                    key={camionItem.id}
+                    style={[
+                      styles.chip,
+                      placa === camionItem.placa && styles.chipSelected
+                    ]}
+                    onPress={() => seleccionarCamion(camionItem)}
+                  >
+                    <Text style={[
+                      styles.chipText,
+                      placa === camionItem.placa && styles.chipTextSelected
+                    ]}>
+                      {camionItem.placa}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Piloto */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Nombre del Piloto *</Text>
+              <TextInput
+                style={styles.fieldInput}
+                value={piloto}
+                onChangeText={(text) => setPiloto(text)}
+                placeholder="Nombre completo del piloto"
+                placeholderTextColor="#9CA3AF"
+                autoCorrect={false}
+                autoCapitalize="words"
+              />
+            </View>
+
+            {/* Cantidad de Galones */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Cantidad de Galones *</Text>
+              <TextInput
+                style={styles.fieldInput}
+                value={cantidadGalones}
+                onChangeText={(text) => setCantidadGalones(text)}
+                placeholder="Ej: 45.5"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="numeric"
+                autoCorrect={false}
+              />
+            </View>
+
+            {/* Fecha y Hora */}
+            <View style={styles.fieldContainer}>
+              <Text style={styles.fieldLabel}>Fecha y Hora</Text>
+              <TextInput
+                style={[styles.fieldInput, styles.readOnlyInput]}
+                value={new Date(fechaHora).toLocaleString('es-GT')}
+                editable={false}
+              />
+            </View>
+
+            <View style={{ height: 100 }} />
+          </ScrollView>
+
+          {/* Footer con botones */}
+          <View style={styles.modalFooterFixed}>
+            <TouchableOpacity
+              style={styles.btnCancel}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.btnCancelText}>Cancelar</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.btnSave}
+              onPress={emitirVale}
+            >
+              <Ionicons name="document-text" size={22} color="white" />
+              <Text style={styles.btnSaveText}>Emitir Vale</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -581,49 +597,53 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
   },
-  modalOverlay: {
+  
+  // ESTILOS DEL MODAL
+  modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
   },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    width: width * 0.9,
-    maxHeight: '80%',
+  modalHeaderGradient: {
+    paddingTop: Platform.OS === 'ios' ? 50 : 40,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
   },
-  modalHeader: {
+  modalHeaderContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
-  modalTitle: {
-    fontSize: 20,
+  modalHeaderTitle: {
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: 'white',
+    flex: 1,
   },
-  modalBody: {
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalScrollView: {
+    flex: 1,
+  },
+  modalScrollContent: {
     padding: 20,
   },
-  inputGroup: {
-    marginBottom: 20,
+  fieldContainer: {
+    marginBottom: 24,
   },
-  inputLabel: {
+  fieldLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: '#374151',
-    marginBottom: 8,
+    marginBottom: 10,
   },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+  fieldInput: {
+    backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 16,
     color: '#1F2937',
   },
@@ -631,67 +651,76 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
     color: '#6B7280',
   },
-  helperText: {
-    fontSize: 12,
+  chipsContainer: {
+    marginBottom: 24,
+  },
+  chipsLabel: {
+    fontSize: 14,
+    fontWeight: '500',
     color: '#6B7280',
-    marginTop: 5,
-    marginBottom: 10,
+    marginBottom: 12,
   },
-  camionesScroll: {
-    marginTop: 5,
+  chipsScrollContent: {
+    paddingVertical: 4,
   },
-  camionChip: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginRight: 8,
+  chip: {
+    backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginRight: 10,
   },
-  camionChipSelected: {
+  chipSelected: {
     backgroundColor: '#F59E0B',
+    borderColor: '#F59E0B',
   },
-  camionChipText: {
-    fontSize: 12,
-    color: '#6B7280',
+  chipText: {
+    fontSize: 14,
     fontWeight: '600',
+    color: '#6B7280',
   },
-  camionChipTextSelected: {
+  chipTextSelected: {
     color: 'white',
   },
-  modalFooter: {
+  modalFooterFixed: {
     flexDirection: 'row',
     padding: 20,
-    gap: 15,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+    backgroundColor: 'white',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
+    gap: 12,
   },
-  cancelButton: {
+  btnCancel: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 2,
     borderColor: '#D1D5DB',
     alignItems: 'center',
+    backgroundColor: 'white',
   },
-  cancelButtonText: {
-    color: '#6B7280',
-    fontSize: 16,
+  btnCancelText: {
+    fontSize: 17,
     fontWeight: '600',
+    color: '#6B7280',
   },
-  saveButton: {
+  btnSave: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 16,
+    borderRadius: 12,
     backgroundColor: '#F59E0B',
-    gap: 6,
+    gap: 8,
   },
-  saveButtonText: {
-    color: 'white',
-    fontSize: 16,
+  btnSaveText: {
+    fontSize: 17,
     fontWeight: '600',
+    color: 'white',
   },
 });
 

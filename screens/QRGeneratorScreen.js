@@ -354,7 +354,10 @@ ${qrData}
           <Text style={styles.loadingText}>Cargando camiones...</Text>
         </View>
       ) : (
-        <ScrollView 
+        <FlatList
+          data={camiones}
+          renderItem={({ item }) => <CamionCard camion={item} />}
+          keyExtractor={(item) => item.id.toString()}
           style={styles.content}
           refreshControl={
             <RefreshControl
@@ -364,44 +367,46 @@ ${qrData}
               tintColor={COLORS.transport.primary}
             />
           }
-        >
-          <View style={styles.infoCard}>
-            <Text style={styles.infoTitle}>💡 ¿Cómo funciona?</Text>
-            <Text style={styles.infoText}>
-              • Selecciona un camión de la lista{'\n'}
-              • Se generará un código QR con toda su información{'\n'}
-              • Comparte el QR o úsalo en el Scanner{'\n'}
-              • El QR auto-completa datos en registros
-            </Text>
-          </View>
+          ListHeaderComponent={() => (
+            <>
+              <View style={styles.infoCard}>
+                <Text style={styles.infoTitle}>💡 ¿Cómo funciona?</Text>
+                <Text style={styles.infoText}>
+                  • Selecciona un camión de la lista{'\n'}
+                  • Se generará un código QR con toda su información{'\n'}
+                  • Comparte el QR o úsalo en el Scanner{'\n'}
+                  • El QR auto-completa datos en registros
+                </Text>
+              </View>
 
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{camiones.length}</Text>
-              <Text style={styles.statLabel}>Camiones</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>
-                {camiones.filter(c => c.estado === 'activo').length}
-              </Text>
-              <Text style={styles.statLabel}>Activos</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>
-                {camiones.filter(c => c.estado === 'mantenimiento').length}
-              </Text>
-              <Text style={styles.statLabel}>Mantenimiento</Text>
-            </View>
-          </View>
+              <View style={styles.statsContainer}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>{camiones.length}</Text>
+                  <Text style={styles.statLabel}>Camiones</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>
+                    {camiones.filter(c => c.estado === 'activo').length}
+                  </Text>
+                  <Text style={styles.statLabel}>Activos</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>
+                    {camiones.filter(c => c.estado === 'mantenimiento').length}
+                  </Text>
+                  <Text style={styles.statLabel}>Mantenimiento</Text>
+                </View>
+              </View>
 
-          <Text style={styles.sectionTitle}>🚛 Selecciona un Camión ({camiones.length})</Text>
-          
-          {camiones.map((camion) => (
-            <CamionCard key={camion.id} camion={camion} />
-          ))}
-
-          <View style={styles.bottomSpacing} />
-        </ScrollView>
+              <Text style={styles.sectionTitle}>🚛 Selecciona un Camión ({camiones.length})</Text>
+            </>
+          )}
+          ListFooterComponent={() => <View style={styles.bottomSpacing} />}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          windowSize={10}
+          initialNumToRender={8}
+        />
       )}
 
       {/* Modal QR */}

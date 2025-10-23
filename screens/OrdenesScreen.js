@@ -31,22 +31,35 @@ const OrdenesScreen = ({ navigation }) => {
   const [ordenSeleccionada, setOrdenSeleccionada] = useState(null);
 
   useEffect(() => {
-    initializeData();
-  }, []);
+    let isMounted = true;
 
-  const initializeData = async () => {
-    try {
-      setLoading(true);
-      await ordenesService.initialize();
-      await cargarOrdenes();
-      await cargarEstadisticas();
-    } catch (error) {
-      console.error('Error inicializando órdenes:', error);
-      Alert.alert('Error', 'No se pudieron cargar las órdenes');
-    } finally {
-      setLoading(false);
-    }
-  };
+    const initializeData = async () => {
+      try {
+        if (isMounted) setLoading(true);
+        await ordenesService.initialize();
+        const todasLasOrdenes = await ordenesService.getOrdenes();
+        const stats = await ordenesService.getEstadisticas();
+
+        if (isMounted) {
+          setOrdenes(todasLasOrdenes);
+          setEstadisticas(stats);
+        }
+      } catch (error) {
+        console.error('Error inicializando órdenes:', error);
+        if (isMounted) {
+          Alert.alert('Error', 'No se pudieron cargar las órdenes');
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    initializeData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const cargarOrdenes = async () => {
     try {

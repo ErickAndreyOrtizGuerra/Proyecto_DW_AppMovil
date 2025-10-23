@@ -4,18 +4,52 @@ const API_BASE_URL = 'https://transportes-ultrarapidos-api.uc.r.appspot.com/api'
  * Servicio para consumir la API de Transportes Ultrarrápidos
  */
 class TransporteApiService {
-  
+  constructor() {
+    // Sistema de caché con TTL (Time To Live)
+    this.cache = {
+      camiones: { data: null, timestamp: null, ttl: 5 * 60 * 1000 }, // 5 minutos
+      transportistas: { data: null, timestamp: null, ttl: 10 * 60 * 1000 } // 10 minutos
+    };
+  }
+
+  /**
+   * Verifica si los datos en caché son válidos
+   */
+  isCacheValid(cacheKey) {
+    const cached = this.cache[cacheKey];
+    if (!cached.data || !cached.timestamp) {
+      return false;
+    }
+    const now = Date.now();
+    return (now - cached.timestamp) < cached.ttl;
+  }
+
+  /**
+   * Invalida el caché para forzar nueva carga
+   */
+  invalidateCache(cacheKey = null) {
+    if (cacheKey) {
+      this.cache[cacheKey] = { data: null, timestamp: null, ttl: this.cache[cacheKey].ttl };
+    } else {
+      // Invalida todo el caché
+      Object.keys(this.cache).forEach(key => {
+        this.cache[key].data = null;
+        this.cache[key].timestamp = null;
+      });
+    }
+  }
+
   /**
    * Método genérico para hacer peticiones HTTP
    */
   async fetchData(endpoint) {
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
@@ -32,19 +66,39 @@ class TransporteApiService {
   }
 
   /**
-   * Obtiene todos los camiones
+   * Obtiene todos los camiones (con caché)
    */
-  async getCamiones() {
+  async getCamiones(forceRefresh = false) {
+    if (!forceRefresh && this.isCacheValid('camiones')) {
+      return this.cache.camiones.data;
+    }
+
     const response = await this.fetchData('/camiones');
-    return response.data || [];
+    const data = Array.isArray(response.data) ? response.data : [];
+
+    // Actualizar caché
+    this.cache.camiones.data = data;
+    this.cache.camiones.timestamp = Date.now();
+
+    return data;
   }
 
   /**
-   * Obtiene todos los transportistas
+   * Obtiene todos los transportistas (con caché)
    */
-  async getTransportistas() {
+  async getTransportistas(forceRefresh = false) {
+    if (!forceRefresh && this.isCacheValid('transportistas')) {
+      return this.cache.transportistas.data;
+    }
+
     const response = await this.fetchData('/transportistas');
-    return response.data || [];
+    const data = Array.isArray(response.data) ? response.data : [];
+
+    // Actualizar caché
+    this.cache.transportistas.data = data;
+    this.cache.transportistas.timestamp = Date.now();
+
+    return data;
   }
 
   /**

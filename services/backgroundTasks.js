@@ -9,10 +9,13 @@ class BackgroundTasksService {
 
   // Iniciar tareas en segundo plano
   start() {
-    if (this.isRunning) return;
+    // Detener cualquier instancia previa para evitar memory leaks
+    if (this.isRunning) {
+      this.stop();
+    }
 
     this.isRunning = true;
-    
+
     // Verificar órdenes cada 30 minutos
     this.intervalId = setInterval(async () => {
       await this.verificarOrdenesVencidas();

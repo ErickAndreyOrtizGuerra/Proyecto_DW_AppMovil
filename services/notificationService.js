@@ -70,15 +70,23 @@ class NotificationService {
 
   // Configurar listeners para notificaciones
   setupListeners() {
+    // Limpiar listeners previos para evitar memory leaks
+    if (this.notificationListener) {
+      Notifications.removeNotificationSubscription(this.notificationListener);
+      this.notificationListener = null;
+    }
+    if (this.responseListener) {
+      Notifications.removeNotificationSubscription(this.responseListener);
+      this.responseListener = null;
+    }
+
     // Listener para notificaciones recibidas mientras la app está abierta
     this.notificationListener = Notifications.addNotificationReceivedListener(notification => {
-      console.log('Notificación recibida:', notification);
       this.handleNotificationReceived(notification);
     });
 
     // Listener para cuando el usuario toca una notificación
     this.responseListener = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log('Respuesta a notificación:', response);
       this.handleNotificationResponse(response);
     });
   }
@@ -155,8 +163,15 @@ class NotificationService {
 
   // Notificar nueva orden pendiente
   async notifyOrdenPendiente(orden) {
+    if (!orden || !orden.id) {
+      console.warn('Orden inválida para notificación');
+      return false;
+    }
+
+    const placa = orden.placa || 'Sin placa';
+    const destino = orden.destino || 'Sin destino';
     const title = '🚛 Nueva Orden Pendiente';
-    const body = `Camión ${orden.placa} - ${orden.destino}`;
+    const body = `Camión ${placa} - ${destino}`;
     const data = {
       type: 'orden_pendiente',
       ordenId: orden.id,
@@ -169,8 +184,15 @@ class NotificationService {
 
   // Notificar orden finalizada
   async notifyOrdenFinalizada(orden) {
+    if (!orden || !orden.id) {
+      console.warn('Orden inválida para notificación');
+      return false;
+    }
+
+    const placa = orden.placa || 'Sin placa';
+    const destino = orden.destino || 'Sin destino';
     const title = '✅ Orden Finalizada';
-    const body = `Camión ${orden.placa} completó el viaje a ${orden.destino}`;
+    const body = `Camión ${placa} completó el viaje a ${destino}`;
     const data = {
       type: 'orden_finalizada',
       ordenId: orden.id,
@@ -183,11 +205,16 @@ class NotificationService {
 
   // Notificar ingreso de camión
   async notifyIngresoRegistrado(movimiento) {
+    if (!movimiento || !movimiento.placa) {
+      console.warn('Movimiento inválido para notificación');
+      return false;
+    }
+
     const title = '📥 Ingreso Registrado';
     const body = `Camión ${movimiento.placa} ingresó al predio`;
     const data = {
       type: 'ingreso_registrado',
-      movimientoId: movimiento.id,
+      movimientoId: movimiento.id || Date.now(),
       screen: 'IngresoEgreso'
     };
 
@@ -196,11 +223,16 @@ class NotificationService {
 
   // Notificar egreso de camión
   async notifyEgresoRegistrado(movimiento) {
+    if (!movimiento || !movimiento.placa) {
+      console.warn('Movimiento inválido para notificación');
+      return false;
+    }
+
     const title = '📤 Egreso Registrado';
     const body = `Camión ${movimiento.placa} salió del predio`;
     const data = {
       type: 'egreso_registrado',
-      movimientoId: movimiento.id,
+      movimientoId: movimiento.id || Date.now(),
       screen: 'IngresoEgreso'
     };
 
@@ -209,8 +241,15 @@ class NotificationService {
 
   // Notificar vale de combustible registrado
   async notifyValeRegistrado(vale) {
+    if (!vale || !vale.id) {
+      console.warn('Vale inválido para notificación');
+      return false;
+    }
+
+    const placa = vale.placa || 'Sin placa';
+    const total = vale.total || 0;
     const title = '⛽ Vale de Combustible';
-    const body = `Registrado Q${vale.total} para ${vale.placa}`;
+    const body = `Registrado Q${total.toFixed(2)} para ${placa}`;
     const data = {
       type: 'vale_registrado',
       valeId: vale.id,
@@ -222,8 +261,14 @@ class NotificationService {
 
   // Recordatorio de mantenimiento
   async notifyMantenimientoPendiente(camion) {
+    if (!camion || !camion.id) {
+      console.warn('Camión inválido para notificación');
+      return false;
+    }
+
+    const placa = camion.placa || 'Sin placa';
     const title = '🔧 Mantenimiento Pendiente';
-    const body = `Camión ${camion.placa} requiere mantenimiento`;
+    const body = `Camión ${placa} requiere mantenimiento`;
     const data = {
       type: 'mantenimiento_pendiente',
       camionId: camion.id,

@@ -45,19 +45,38 @@ const IngresoEgresoScreen = ({ navigation }) => {
   });
 
   useEffect(() => {
-    cargarCamiones();
-    cargarMovimientos();
-    initializeNotifications();
-  }, []);
+    let isMounted = true;
 
-  const initializeNotifications = async () => {
-    try {
-      await notificationService.initialize();
-      console.log('Servicio de notificaciones inicializado');
-    } catch (error) {
-      console.error('Error inicializando notificaciones:', error);
-    }
-  };
+    const initializeScreen = async () => {
+      try {
+        if (isMounted) setLoading(true);
+
+        // Inicializar notificaciones
+        await notificationService.initialize();
+
+        // Cargar datos
+        const data = await transporteApi.getCamiones();
+
+        if (isMounted) {
+          setCamiones(data.filter(c => c.estado === 'activo'));
+          cargarMovimientos();
+        }
+      } catch (error) {
+        console.error('Error inicializando pantalla:', error);
+        if (isMounted) {
+          Alert.alert('Error', 'No se pudieron cargar los datos');
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    initializeScreen();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const cargarCamiones = async () => {
     try {

@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import ordenesService from './services/ordenesService';
 import backgroundTasksService from './services/backgroundTasks';
+import notificationService from './services/notificationService';
 
 // Importar pantallas
 import CamionesScreen from './screens/CamionesScreen';
@@ -144,6 +145,8 @@ export default function App() {
     // Inicializar servicios al cargar la app
     const initializeServices = async () => {
       try {
+        // Inicializar servicios en orden
+        await notificationService.initialize();
         await ordenesService.initialize();
         backgroundTasksService.start();
         console.log('Servicios inicializados correctamente');
@@ -157,6 +160,7 @@ export default function App() {
     // Cleanup al desmontar la app
     return () => {
       backgroundTasksService.stop();
+      notificationService.cleanup();
     };
   }, []);
 

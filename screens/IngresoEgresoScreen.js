@@ -22,25 +22,25 @@ import qrService from '../services/qrService';
 const { width, height } = Dimensions.get('window');
 
 const IngresoEgresoScreen = ({ navigation }) => {
-  const [camiones, setCamiones] = useState([]);
+  const [ordenes, setOrdenes] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [tipoMovimiento, setTipoMovimiento] = useState('ingreso');
-  const [camionSeleccionado, setCamionSeleccionado] = useState(null);
+  const [ordenSeleccionada, setOrdenSeleccionada] = useState(null);
   const [movimientos, setMovimientos] = useState([]);
   const [comprobanteVisible, setComprobanteVisible] = useState(false);
   const [movimientoParaComprobante, setMovimientoParaComprobante] = useState(null);
   const [tipoComprobanteActual, setTipoComprobanteActual] = useState('ingreso');
+  const [loading, setLoading] = useState(false);
   
   // Estados separados para cada campo
-  const [placa, setPlaca] = useState('');
-  const [piloto, setPiloto] = useState('');
   const [origen, setOrigen] = useState('');
   const [destino, setDestino] = useState('');
   const [tipoCarga, setTipoCarga] = useState('');
+  const [kilometraje, setKilometraje] = useState('');
   const [observaciones, setObservaciones] = useState('');
 
   useEffect(() => {
-    cargarCamiones();
+    cargarOrdenes();
     cargarMovimientos();
     initializeNotifications();
   }, []);
@@ -53,12 +53,14 @@ const IngresoEgresoScreen = ({ navigation }) => {
     }
   };
 
-  const cargarCamiones = async () => {
+  const cargarOrdenes = async () => {
     try {
-      const data = await transporteApi.getCamiones();
-      setCamiones(data.filter(c => c.estado === 'activo'));
+      const data = await transporteApi.getOrdenes();
+      // Filtrar solo órdenes activas o en proceso
+      setOrdenes(data.filter(o => o.estado === 'activa' || o.estado === 'en_proceso'));
     } catch (error) {
-      Alert.alert('Error', 'No se pudieron cargar los camiones');
+      console.error('Error cargando órdenes:', error);
+      Alert.alert('Error', 'No se pudieron cargar las órdenes de trabajo');
     }
   };
 
@@ -95,64 +97,114 @@ const IngresoEgresoScreen = ({ navigation }) => {
   };
 
   const limpiarFormulario = () => {
-    setPlaca('');
-    setPiloto('');
     setOrigen('');
     setDestino('');
     setTipoCarga('');
+    setKilometraje('');
     setObservaciones('');
-    setCamionSeleccionado(null);
+    setOrdenSeleccionada(null);
   };
 
   const registrarMovimiento = async () => {
-    if (!placa || !piloto) {
-      Alert.alert('Error', 'Placa y piloto son campos obligatorios');
+    // Validar orden seleccionada
+    if (!ordenSeleccionada) {
+      Alert.alert('❌ Error', 'Debes seleccionar una orden de trabajo');
       return;
     }
 
-    const nuevoMovimiento = {
-      id: Date.now(),
-      placa,
-      piloto,
-      origen,
-      destino,
-      tipoCarga,
-      observaciones,
-      tipo: tipoMovimiento,
-      fecha: new Date().toISOString()
-    };
-
-    setMovimientos([nuevoMovimiento, ...movimientos]);
-    setModalVisible(false);
-    
+    // Validar campos según tipo de movimiento
     if (tipoMovimiento === 'ingreso') {
-      await notificationService.notifyIngresoRegistrado(nuevoMovimiento);
+      if (!origen || !tipoCarga) {
+        Alert.alert('❌ Error', 'Origen y tipo de carga son obligatorios para el ingreso');
+        return;
+      }
     } else {
-      await notificationService.notifyEgresoRegistrado(nuevoMovimiento);
+      if (!destino || !tipoCarga) {
+        Alert.alert('❌ Error', 'Destino y tipo de carga son obligatorios para el egreso');
+        return;
+      }
     }
-    
-    Alert.alert(
-      '✅ Registro Exitoso',
-      `${tipoMovimiento === 'ingreso' ? 'Ingreso' : 'Egreso'} registrado correctamente`,
-      [
-        { text: 'Cerrar', style: 'cancel' },
-        {
-          text: '📄 Generar PDF',
-          onPress: () => mostrarComprobante(nuevoMovimiento, tipoMovimiento)
+
+    try {
+      setLoading(true);
+      
+      if (tipoMovimiento === 'ingreso') {
+        // Registrar INGRESO con API real
+        const ingresoData = {
+          origen: origen.trim(),
+          tipo_carga: tipoCarga.trim(),
+          fecha_ingreso: new Date().toISOString().slice(0, 19).replace('T', ' '),
+          ...(observaciones && { observaciones: observaciones.trim() })
+        };
+        
+        const response = await transporteApi.registrarIngreso(ordenSeleccionada.id, ingresoData);
+        
+        if (response.success) {
+          Alert.alert(
+            '✅ Ingreso Registrado',
+            `Ingreso registrado correctamente en la orden ${ordenSeleccionada.numero_orden}`,
+            [{ text: 'Perfecto', style: 'default' }]
+          );
+          
+          await notificationService.notifyIngresoRegistrado({
+            orden: ordenSeleccionada.numero_orden,
+            origen,
+            tipoCarga
+          });
+          
+          setModalVisible(false);
+          limpiarFormulario();
+          cargarMovimientos();
+        } else {
+          Alert.alert('❌ Error', response.message || 'No se pudo registrar el ingreso');
         }
-      ]
-    );
+      } else {
+        // Registrar EGRESO con API real
+        const egresoData = {
+          destino: destino.trim(),
+          tipo_carga: tipoCarga.trim(),
+          fecha_egreso: new Date().toISOString().slice(0, 19).replace('T', ' '),
+          ...(kilometraje && { kilometraje: parseInt(kilometraje) }),
+          ...(observaciones && { observaciones: observaciones.trim() })
+        };
+        
+        const response = await transporteApi.registrarEgreso(ordenSeleccionada.id, egresoData);
+        
+        if (response.success) {
+          Alert.alert(
+            '✅ Egreso Registrado',
+            `Egreso registrado correctamente en la orden ${ordenSeleccionada.numero_orden}`,
+            [{ text: 'Perfecto', style: 'default' }]
+          );
+          
+          await notificationService.notifyEgresoRegistrado({
+            orden: ordenSeleccionada.numero_orden,
+            destino,
+            tipoCarga
+          });
+          
+          setModalVisible(false);
+          limpiarFormulario();
+          cargarMovimientos();
+        } else {
+          Alert.alert('❌ Error', response.message || 'No se pudo registrar el egreso');
+        }
+      }
+    } catch (error) {
+      console.error('Error registrando movimiento:', error);
+      Alert.alert(
+        '❌ Error de Conexión',
+        'No se pudo conectar con el servidor. Verifica tu conexión e intenta nuevamente.'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const mostrarComprobante = (movimiento, tipo) => {
     setMovimientoParaComprobante(movimiento);
     setTipoComprobanteActual(tipo);
     setComprobanteVisible(true);
-  };
-
-  const seleccionarCamion = (camion) => {
-    setPlaca(camion.placa);
-    setCamionSeleccionado(camion);
   };
 
   const handleScanResult = async (scannedData) => {
@@ -393,58 +445,50 @@ const IngresoEgresoScreen = ({ navigation }) => {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* Placa */}
+            {/* Selector de Orden de Trabajo */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.fieldLabel}>Placa del Camión *</Text>
-              <TextInput
-                style={styles.fieldInput}
-                value={placa}
-                onChangeText={(text) => setPlaca(text)}
-                placeholder="Ej: P-001AAA"
-                placeholderTextColor="#9CA3AF"
-                autoCapitalize="characters"
-              />
-            </View>
-
-            {/* Chips de camiones */}
-            <View style={styles.chipsContainer}>
-              <Text style={styles.chipsLabel}>Camiones disponibles:</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.chipsScrollContent}
-              >
-                {camiones.slice(0, 8).map((camion) => (
-                  <TouchableOpacity
-                    key={camion.id}
-                    style={[
-                      styles.chip,
-                      placa === camion.placa && styles.chipSelected
-                    ]}
-                    onPress={() => seleccionarCamion(camion)}
-                  >
-                    <Text style={[
-                      styles.chipText,
-                      placa === camion.placa && styles.chipTextSelected
-                    ]}>
-                      {camion.placa}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-
-            {/* Piloto */}
-            <View style={styles.fieldContainer}>
-              <Text style={styles.fieldLabel}>Nombre del Piloto *</Text>
-              <TextInput
-                style={styles.fieldInput}
-                value={piloto}
-                onChangeText={(text) => setPiloto(text)}
-                placeholder="Nombre completo"
-                placeholderTextColor="#9CA3AF"
-                autoCapitalize="words"
-              />
+              <Text style={styles.fieldLabel}>Orden de Trabajo *</Text>
+              <View style={styles.pickerContainer}>
+                <ScrollView style={styles.ordenesScrollView} nestedScrollEnabled>
+                  {ordenes.length === 0 ? (
+                    <Text style={styles.noOrdenesText}>No hay órdenes disponibles</Text>
+                  ) : (
+                    ordenes.map((orden) => (
+                      <TouchableOpacity
+                        key={orden.id}
+                        style={[
+                          styles.ordenItem,
+                          ordenSeleccionada?.id === orden.id && styles.ordenItemSelected
+                        ]}
+                        onPress={() => setOrdenSeleccionada(orden)}
+                      >
+                        <View style={styles.ordenItemContent}>
+                          <Text style={[
+                            styles.ordenNumero,
+                            ordenSeleccionada?.id === orden.id && styles.ordenNumeroSelected
+                          ]}>
+                            {orden.numero_orden}
+                          </Text>
+                          <Text style={[
+                            styles.ordenDetalle,
+                            ordenSeleccionada?.id === orden.id && styles.ordenDetalleSelected
+                          ]}>
+                            {orden.descripcion || 'Sin descripción'}
+                          </Text>
+                        </View>
+                        {ordenSeleccionada?.id === orden.id && (
+                          <Ionicons name="checkmark-circle" size={24} color="#10B981" />
+                        )}
+                      </TouchableOpacity>
+                    ))
+                  )}
+                </ScrollView>
+              </View>
+              {ordenSeleccionada && (
+                <Text style={styles.ordenSeleccionadaText}>
+                  ✅ Orden seleccionada: {ordenSeleccionada.numero_orden}
+                </Text>
+              )}
             </View>
 
             {/* Origen/Destino */}
@@ -464,16 +508,31 @@ const IngresoEgresoScreen = ({ navigation }) => {
 
             {/* Tipo de Carga */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.fieldLabel}>Tipo de Carga</Text>
+              <Text style={styles.fieldLabel}>Tipo de Carga *</Text>
               <TextInput
                 style={styles.fieldInput}
                 value={tipoCarga}
                 onChangeText={(text) => setTipoCarga(text)}
-                placeholder="Ej: Contenedores, Carga general"
+                placeholder="Ej: Maíz, Contenedores, Carga general"
                 placeholderTextColor="#9CA3AF"
                 autoCapitalize="words"
               />
             </View>
+
+            {/* Kilometraje (solo para egreso) */}
+            {tipoMovimiento === 'egreso' && (
+              <View style={styles.fieldContainer}>
+                <Text style={styles.fieldLabel}>Kilometraje (opcional)</Text>
+                <TextInput
+                  style={styles.fieldInput}
+                  value={kilometraje}
+                  onChangeText={(text) => setKilometraje(text.replace(/[^0-9]/g, ''))}
+                  placeholder="Ej: 150"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="numeric"
+                />
+              </View>
+            )}
 
             {/* Observaciones */}
             <View style={styles.fieldContainer}>
@@ -762,6 +821,60 @@ const styles = StyleSheet.create({
   },
   chipTextSelected: {
     color: 'white',
+  },
+  // Estilos para selector de órdenes
+  pickerContainer: {
+    backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    maxHeight: 200,
+    overflow: 'hidden',
+  },
+  ordenesScrollView: {
+    maxHeight: 200,
+  },
+  noOrdenesText: {
+    padding: 20,
+    textAlign: 'center',
+    color: '#9CA3AF',
+    fontSize: 14,
+  },
+  ordenItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  ordenItemSelected: {
+    backgroundColor: '#EFF6FF',
+  },
+  ordenItemContent: {
+    flex: 1,
+  },
+  ordenNumero: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 4,
+  },
+  ordenNumeroSelected: {
+    color: '#1E40AF',
+  },
+  ordenDetalle: {
+    fontSize: 13,
+    color: '#6B7280',
+  },
+  ordenDetalleSelected: {
+    color: '#3B82F6',
+  },
+  ordenSeleccionadaText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#10B981',
+    fontWeight: '500',
   },
   modalFooterFixed: {
     flexDirection: 'row',

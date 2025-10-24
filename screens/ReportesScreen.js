@@ -10,11 +10,13 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../contexts/AuthContext';
 import transporteApi from '../services/transporteApi';
 
 const { width } = Dimensions.get('window');
 
 const ReportesScreen = ({ navigation }) => {
+  const { user, logout } = useAuth();
   const [estadisticas, setEstadisticas] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -28,10 +30,36 @@ const ReportesScreen = ({ navigation }) => {
       const stats = await transporteApi.getEstadisticas();
       setEstadisticas(stats);
     } catch (error) {
-      Alert.alert('Error', 'No se pudieron cargar los datos');
+      console.error('Error cargando estadísticas:', error);
+      Alert.alert('Error', 'No se pudieron cargar las estadísticas');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      '🚪 Cerrar Sesión',
+      '¿Estás seguro que deseas cerrar sesión?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel'
+        },
+        {
+          text: 'Cerrar Sesión',
+          style: 'destructive',
+          onPress: async () => {
+            const success = await logout();
+            if (success) {
+              Alert.alert('✅ Sesión Cerrada', 'Has cerrado sesión correctamente');
+            } else {
+              Alert.alert('❌ Error', 'No se pudo cerrar la sesión');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const generarReporte = (tipoReporte) => {
@@ -157,14 +185,24 @@ const ReportesScreen = ({ navigation }) => {
         <View style={styles.headerContent}>
           <View style={styles.headerText}>
             <Text style={styles.headerTitle}>📊 Reportes Operativos</Text>
-            <Text style={styles.headerSubtitle}>Análisis y estadísticas del sistema</Text>
+            <Text style={styles.headerSubtitle}>
+              {user ? `Bienvenido, ${user.nombre || user.email}` : 'Análisis y estadísticas del sistema'}
+            </Text>
           </View>
-          <TouchableOpacity 
-            style={styles.notificationButton}
-            onPress={() => navigation.navigate('Notificaciones')}
-          >
-            <Ionicons name="notifications" size={24} color="white" />
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity 
+              style={styles.headerButton}
+              onPress={() => navigation.navigate('Notificaciones')}
+            >
+              <Ionicons name="notifications" size={20} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.headerButton}
+              onPress={handleLogout}
+            >
+              <Ionicons name="log-out" size={20} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
       </LinearGradient>
 
@@ -305,6 +343,18 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   notificationButton: {
     width: 44,

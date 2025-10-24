@@ -118,24 +118,47 @@ const ValesCombustibleScreen = () => {
       return;
     }
 
-    const nuevoVale = {
-      id: Date.now(),
-      numeroOrden,
-      placa,
-      piloto,
-      camion,
-      cantidadGalones: parseFloat(cantidadGalones),
-      fechaHora,
-      estado: 'emitido'
-    };
+    try {
+      // Datos para la API real - usar estructura correcta
+      const valeData = {
+        orden_trabajo_id: 1, // Por ahora usar ID fijo, debería venir de una orden real
+        cantidad_galones: parseFloat(cantidadGalones), // IMPORTANTE: usar cantidad_galones
+        precio_galon: 6.00, // Precio por defecto
+        fecha_vale: new Date().toISOString().slice(0, 19).replace('T', ' '), // Formato YYYY-MM-DD HH:MM:SS
+        observaciones: `Vale para ${placa} - Piloto: ${piloto}`
+      };
 
-    setVales([nuevoVale, ...vales]);
-    setModalVisible(false);
-    
-    // Enviar notificación
-    await notificationService.notifyValeRegistrado(nuevoVale);
-    
-    Alert.alert('Éxito', `Vale ${numeroOrden} emitido correctamente`);
+      // Crear vale usando la API real
+      const response = await transporteApi.createValeCombustible(valeData);
+      
+      if (response.success) {
+        // Actualizar lista local con el vale creado
+        const nuevoVale = {
+          id: response.data.id,
+          numeroOrden,
+          placa,
+          piloto,
+          camion,
+          cantidadGalones: response.data.cantidad_galones,
+          fechaHora,
+          estado: 'emitido',
+          apiData: response.data // Guardar datos completos de la API
+        };
+
+        setVales([nuevoVale, ...vales]);
+        setModalVisible(false);
+        
+        // Enviar notificación
+        await notificationService.notifyValeRegistrado(nuevoVale);
+        
+        Alert.alert('✅ Éxito', `Vale creado correctamente\nID: ${response.data.id}\nTotal: Q${response.data.total}`);
+      } else {
+        Alert.alert('❌ Error', response.message || 'No se pudo crear el vale');
+      }
+    } catch (error) {
+      console.error('Error creando vale:', error);
+      Alert.alert('❌ Error de Conexión', 'No se pudo conectar con el servidor');
+    }
   };
 
   const cambiarEstadoVale = (valeId) => {

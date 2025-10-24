@@ -140,6 +140,19 @@ class QRService {
       }));
   }
 
+  // Buscar camión por placa exacta
+  findCamionByPlate(placa, camiones = []) {
+    if (!placa || !Array.isArray(camiones)) {
+      return null;
+    }
+
+    const placaLimpia = placa.trim().toUpperCase();
+    
+    return camiones.find(camion => 
+      camion.placa && camion.placa.toUpperCase() === placaLimpia
+    ) || null;
+  }
+
   // Validar datos de escaneo
   validateScanData(data) {
     if (!data || typeof data !== 'string') {

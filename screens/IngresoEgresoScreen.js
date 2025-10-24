@@ -165,7 +165,7 @@ const IngresoEgresoScreen = ({ navigation }) => {
       }
       
       let placaIdentificada = validation.placa;
-      let camionEncontrado = qrService.findCamionByPlate(camiones, placaIdentificada);
+      let camionEncontrado = qrService.findCamionByPlate(placaIdentificada, camiones);
       
       if (validation.type === 'qr') {
         const qrData = validation.data;
@@ -204,7 +204,7 @@ const IngresoEgresoScreen = ({ navigation }) => {
         } else {
           setPlaca(placaIdentificada);
           
-          const sugerencias = qrService.getSimilarPlates(camiones, placaIdentificada);
+          const sugerencias = qrService.searchCamionesByPlate(placaIdentificada, camiones);
           const mensajeSugerencias = sugerencias.length > 0 
             ? `\n\n🔍 Placas similares:\n${sugerencias.map(s => `• ${s.placa} (${s.descripcion})`).join('\n')}`
             : '';

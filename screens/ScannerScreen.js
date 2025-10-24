@@ -441,26 +441,42 @@ const ScannerScreen = ({ navigation, route }) => {
 
       {/* Action Buttons */}
       <View style={styles.actionButtons}>
-        <Button
-          variant="outline"
-          size="large"
-          icon="close"
+        <TouchableOpacity
           onPress={() => navigation.goBack()}
-          style={styles.cancelButton}
+          style={[styles.cancelButton, styles.nativeButton, styles.outlineButton]}
         >
-          Cancelar
-        </Button>
+          <Ionicons name="close" size={20} color={COLORS.secondary[600]} style={styles.buttonIcon} />
+          <Text style={styles.outlineButtonText}>Cancelar</Text>
+        </TouchableOpacity>
         
-        <Button
-          variant="primary"
-          size="large"
-          icon={processing ? "hourglass" : "checkmark"}
-          onPress={() => validateAndProcess(inputText)}
-          disabled={processing || !inputText.trim()}
-          style={styles.confirmButton}
+        <TouchableOpacity
+          onPress={() => {
+            console.log('🔵 Botón Confirmar presionado con texto:', inputText);
+            console.log('🔵 Texto vacío?', !inputText.trim());
+            if (!inputText.trim()) {
+              Alert.alert('❌ Campo Vacío', 'Por favor ingresa una placa o código QR antes de confirmar');
+              return;
+            }
+            validateAndProcess(inputText);
+          }}
+          disabled={processing}
+          style={[
+            styles.confirmButton, 
+            styles.nativeButton, 
+            styles.primaryButton,
+            processing && styles.disabledButton
+          ]}
         >
-          {processing ? 'Procesando...' : 'Confirmar'}
-        </Button>
+          <Ionicons 
+            name={processing ? "hourglass" : "checkmark"} 
+            size={20} 
+            color="white" 
+            style={styles.buttonIcon} 
+          />
+          <Text style={styles.primaryButtonText}>
+            {processing ? 'Procesando...' : 'Confirmar'}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -668,6 +684,39 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     flex: 2,
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  nativeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: BORDERS.radius.lg,
+    minHeight: 48,
+  },
+  outlineButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: COLORS.secondary[300],
+  },
+  primaryButton: {
+    backgroundColor: COLORS.transport.primary,
+  },
+  buttonIcon: {
+    marginRight: SPACING.xs,
+  },
+  outlineButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.secondary[600],
+  },
+  primaryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
   },
 });
 

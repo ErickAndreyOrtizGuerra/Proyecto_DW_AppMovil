@@ -1,3 +1,8 @@
+# Proyecto de Transportes Ultrarrápidos - App Móvil
+
+Aplicación móvil desarrollada por el grupo conformado por: Andy Aquino, Erick Ortiz y Carlos Martinez
+
+
 # 🚛 Transportes Ultrarrápidos - App Móvil
 
 Aplicación móvil desarrollada con React Native y Expo para la gestión integral de una empresa de transportes con funcionalidades avanzadas de scanner y notificaciones.
@@ -77,93 +82,6 @@ Aplicación móvil desarrollada con React Native y Expo para la gestión integra
 - **Expo Vector Icons** - Iconografía
 - **JavaScript ES6+** - Lenguaje de programación
 
-## 🚀 Instalación y Configuración
-
-### Prerrequisitos
-- Node.js (versión 16 o superior)
-- npm o yarn
-- Expo CLI
-- Dispositivo móvil con Expo Go o emulador
-
-### Pasos de instalación
-
-1. **Clonar el repositorio**
-```bash
-git clone [url-del-repositorio]
-cd transportes-ultrarapidos-app
-```
-
-2. **Instalar dependencias**
-```bash
-npm install
-```
-
-3. **Instalar dependencias adicionales**
-```bash
-npx expo install expo-camera expo-barcode-scanner expo-notifications @react-native-async-storage/async-storage
-```
-
-4. **Iniciar el servidor de desarrollo**
-```bash
-npm start
-```
-
-5. **Ejecutar en dispositivo**
-- Escanear el código QR con Expo Go (Android/iOS)
-- O usar emulador: `npm run android` / `npm run ios`
-
-## 📁 Estructura del Proyecto
-
-```
-transportes-ultrarapidos-app/
-├── screens/                 # Pantallas de la aplicación
-│   ├── CamionesScreen.js    # Lista de camiones
-│   ├── CamionDetalleScreen.js # Detalle de camión
-│   ├── TransportistasScreen.js # Lista de transportistas
-│   ├── IngresoEgresoScreen.js # Control de movimientos
-│   ├── ValesCombustibleScreen.js # Vales de combustible
-│   ├── ReportesScreen.js    # Reportes y estadísticas
-│   └── NotificacionesScreen.js # Configuración de notificaciones
-├── components/              # Componentes reutilizables
-│   ├── Card.js             # Componentes de tarjetas
-│   ├── Typography.js       # Componentes de texto
-│   ├── Button.js           # Componentes de botones
-│   ├── PlateScanner.js     # Scanner de placas/QR
-│   ├── FloatingSearch.js   # Búsqueda flotante optimizada
-│   └── StableFormInput.js  # Inputs de formulario estables
-├── services/               # Servicios y APIs
-│   ├── transporteApi.js    # API de transportes
-│   └── notificationService.js # Servicio de notificaciones
-├── constants/              # Constantes y configuración
-│   └── Design.js           # Sistema de diseño
-├── App.js                  # Componente principal
-├── app.json               # Configuración de Expo y permisos
-└── package.json           # Dependencias del proyecto
-```
-
-## 🔐 Permisos y Configuración
-
-### Permisos de iOS
-- **NSCameraUsageDescription**: Acceso a cámara para scanner
-- **NSMicrophoneUsageDescription**: Funciones de notificación
-
-### Permisos de Android
-- **CAMERA**: Acceso a cámara
-- **RECORD_AUDIO**: Funciones de audio
-- **RECEIVE_BOOT_COMPLETED**: Notificaciones persistentes
-- **VIBRATE**: Vibración en notificaciones
-- **WAKE_LOCK**: Mantener dispositivo activo
-
-## 🎨 Sistema de Diseño
-
-La aplicación utiliza un sistema de diseño consistente con:
-
-- **Colores primarios**: Azules (#1E40AF, #3B82F6)
-- **Tipografía**: Sistema nativo optimizado
-- **Espaciado**: Sistema modular (4px, 8px, 16px, etc.)
-- **Componentes**: Reutilizables y consistentes
-- **Gradientes**: Efectos visuales modernos
-- **Animaciones**: Transiciones fluidas y microinteracciones
 
 ## 📊 API y Datos
 
@@ -299,41 +217,3 @@ La aplicación consume datos de la API de Transportes Ultrarrápidos:
 - [x] **Alertas automáticas de eventos**
 - [x] **Panel de administración completo**
 
-## 🔄 Próximas Funcionalidades
-
-- [x] ~~**Generación de comprobantes PDF**~~ ✅ **Implementado**
-- [x] ~~**Scanner de placas y QR**~~ ✅ **Implementado**
-- [x] ~~**Validación de formatos guatemaltecos**~~ ✅ **Implementado**
-- [ ] **Modo offline** con sincronización
-- [ ] **Geolocalización** de camiones en tiempo real
-- [ ] **Push notifications remotas** desde servidor
-- [ ] **Autenticación** de usuarios
-- [ ] **Roles y permisos** diferenciados
-- [ ] **Dashboard** en tiempo real
-- [ ] **Backup automático** de datos
-- [ ] **Impresión física** de comprobantes
-- [ ] **Reportes avanzados** con gráficos
-- [ ] **Integración con GPS** para tracking
-
-## 🤝 Contribución
-
-Para contribuir al proyecto:
-
-1. Fork el repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit tus cambios (`git commit -am 'Agregar nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Crea un Pull Request
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
-
-## 📞 Contacto
-
-Para soporte técnico o consultas sobre el proyecto, contactar al equipo de desarrollo.
-
----
-
-**Desarrollado con ❤️ para Transportes Ultrarrápidos**
-**✨ Ahora con Scanner Optimizado 🔍, Generador QR 📱 y Comprobantes PDF 📄 ✨**

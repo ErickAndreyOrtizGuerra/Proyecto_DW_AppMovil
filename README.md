@@ -1,3 +1,8 @@
+# Poryecto de Transportes Ultrarrápidos - App Móvil
+
+Aplicación móvil desarrollada por el grupo conformado por: Andy Aquino, Erick Ortiz y Carlos Martinez
+
+
 # 🚛 Transportes Ultrarrápidos - App Móvil
 
 Aplicación móvil desarrollada con React Native y Expo para la gestión integral de una empresa de transportes con funcionalidades avanzadas de scanner y notificaciones.

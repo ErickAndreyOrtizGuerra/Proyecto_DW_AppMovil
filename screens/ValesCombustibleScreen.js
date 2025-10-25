@@ -266,7 +266,10 @@ const ValesCombustibleScreen = () => {
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>
-            {vales.reduce((sum, v) => sum + v.cantidadGalones, 0).toFixed(1)}
+            {vales.reduce((sum, v) => {
+              const galones = parseFloat(v.cantidadGalones) || 0;
+              return sum + galones;
+            }, 0).toFixed(1)}
           </Text>
           <Text style={styles.statLabel}>Total Gal</Text>
         </View>

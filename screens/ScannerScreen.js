@@ -346,44 +346,95 @@ const ScannerScreen = ({ navigation, route }) => {
           </View>
 
           {/* Quick Actions */}
-          <View style={styles.quickActions}>
-            {inputMode === 'qr' && (
+          <View style={styles.quickActionsContainer}>
+            <View style={styles.quickActions}>
+              {inputMode === 'qr' && (
+                <Button
+                  variant="outline"
+                  size="small"
+                  icon="code-working"
+                  onPress={generateSampleQR}
+                  style={styles.quickActionButton}
+                >
+                  QR Ejemplo
+                </Button>
+              )}
+              
+              {inputMode === 'plate' && (
+                <Button
+                  variant="outline"
+                  size="small"
+                  icon="flash"
+                  onPress={() => setInputText('P-001AAA')}
+                  style={styles.quickActionButton}
+                >
+                  Placa Ejemplo
+                </Button>
+              )}
+              
               <Button
                 variant="outline"
                 size="small"
-                icon="code-working"
-                onPress={generateSampleQR}
+                icon="refresh"
+                onPress={() => {
+                  setInputText('');
+                  setSuggestions([]);
+                  setValidationResult(null);
+                }}
                 style={styles.quickActionButton}
               >
-                QR Ejemplo
+                Limpiar
               </Button>
+            </View>
+
+            {/* Placa Detectada y Botón Confirmar */}
+            {inputText.trim() && validationResult && (
+              <View style={styles.detectedPlateContainer}>
+                <View style={styles.detectedPlateInfo}>
+                  <Ionicons 
+                    name={validationResult.type === 'qr' ? 'qr-code' : 'car'} 
+                    size={20} 
+                    color={validationResult.valid ? COLORS.success : COLORS.warning} 
+                  />
+                  <View style={styles.detectedPlateText}>
+                    <Text style={styles.detectedPlateLabel}>
+                      {validationResult.type === 'qr' ? 'QR Detectado' : 'Placa Detectada'}
+                    </Text>
+                    <Text style={[
+                      styles.detectedPlateValue,
+                      { color: validationResult.valid ? COLORS.success : COLORS.warning }
+                    ]}>
+                      {validationResult.placa || inputText.substring(0, 20)}
+                    </Text>
+                  </View>
+                </View>
+                
+                <TouchableOpacity
+                  onPress={() => {
+                    if (!inputText.trim()) {
+                      Alert.alert('❌ Campo Vacío', 'Por favor ingresa una placa o código QR');
+                      return;
+                    }
+                    validateAndProcess(inputText);
+                  }}
+                  disabled={processing}
+                  style={[
+                    styles.inlineConfirmButton,
+                    processing && styles.disabledButton,
+                    !validationResult.valid && styles.warningButton
+                  ]}
+                >
+                  <Ionicons 
+                    name={processing ? "hourglass" : "checkmark-circle"} 
+                    size={20} 
+                    color="white" 
+                  />
+                  <Text style={styles.inlineConfirmButtonText}>
+                    {processing ? 'Procesando...' : 'Confirmar'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             )}
-            
-            {inputMode === 'plate' && (
-              <Button
-                variant="outline"
-                size="small"
-                icon="flash"
-                onPress={() => setInputText('P-001AAA')}
-                style={styles.quickActionButton}
-              >
-                Placa Ejemplo
-              </Button>
-            )}
-            
-            <Button
-              variant="outline"
-              size="small"
-              icon="refresh"
-              onPress={() => {
-                setInputText('');
-                setSuggestions([]);
-                setValidationResult(null);
-              }}
-              style={styles.quickActionButton}
-            >
-              Limpiar
-            </Button>
           </View>
         </Card>
 
@@ -438,46 +489,6 @@ const ScannerScreen = ({ navigation, route }) => {
           </View>
         </Card>
       </ScrollView>
-
-      {/* Action Buttons */}
-      <View style={styles.actionButtons}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={[styles.cancelButton, styles.nativeButton, styles.outlineButton]}
-        >
-          <Ionicons name="close" size={20} color={COLORS.secondary[600]} style={styles.buttonIcon} />
-          <Text style={styles.outlineButtonText}>Cancelar</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          onPress={() => {
-            console.log('🔵 Botón Confirmar presionado con texto:', inputText);
-            console.log('🔵 Texto vacío?', !inputText.trim());
-            if (!inputText.trim()) {
-              Alert.alert('❌ Campo Vacío', 'Por favor ingresa una placa o código QR antes de confirmar');
-              return;
-            }
-            validateAndProcess(inputText);
-          }}
-          disabled={processing}
-          style={[
-            styles.confirmButton, 
-            styles.nativeButton, 
-            styles.primaryButton,
-            processing && styles.disabledButton
-          ]}
-        >
-          <Ionicons 
-            name={processing ? "hourglass" : "checkmark"} 
-            size={20} 
-            color="white" 
-            style={styles.buttonIcon} 
-          />
-          <Text style={styles.primaryButtonText}>
-            {processing ? 'Procesando...' : 'Confirmar'}
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 };
@@ -594,12 +605,68 @@ const styles = StyleSheet.create({
   validationTextError: {
     color: COLORS.warning,
   },
+  quickActionsContainer: {
+    gap: SPACING.md,
+  },
   quickActions: {
     flexDirection: 'row',
     gap: SPACING.sm,
   },
   quickActionButton: {
     flex: 1,
+  },
+  detectedPlateContainer: {
+    backgroundColor: COLORS.secondary[50],
+    borderRadius: BORDERS.radius.lg,
+    padding: SPACING.md,
+    borderWidth: 2,
+    borderColor: COLORS.success + '40',
+    gap: SPACING.md,
+  },
+  detectedPlateInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  detectedPlateText: {
+    flex: 1,
+  },
+  detectedPlateLabel: {
+    fontSize: 12,
+    color: COLORS.secondary[600],
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  detectedPlateValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  inlineConfirmButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.success,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: BORDERS.radius.lg,
+    gap: SPACING.xs,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  warningButton: {
+    backgroundColor: COLORS.warning,
+  },
+  inlineConfirmButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: 'white',
   },
   suggestionsCard: {
     marginBottom: SPACING.lg,
@@ -669,54 +736,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.secondary[700],
   },
-  actionButtons: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.lg,
-    paddingBottom: SPACING.xl,
-    gap: SPACING.md,
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.secondary[200],
-  },
-  cancelButton: {
-    flex: 1,
-  },
-  confirmButton: {
-    flex: 2,
-  },
   disabledButton: {
     opacity: 0.6,
-  },
-  nativeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    borderRadius: BORDERS.radius.lg,
-    minHeight: 48,
-  },
-  outlineButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: COLORS.secondary[300],
-  },
-  primaryButton: {
-    backgroundColor: COLORS.transport.primary,
-  },
-  buttonIcon: {
-    marginRight: SPACING.xs,
-  },
-  outlineButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.secondary[600],
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
   },
 });
 

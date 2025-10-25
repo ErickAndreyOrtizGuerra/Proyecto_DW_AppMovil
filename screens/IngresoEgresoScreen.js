@@ -23,6 +23,7 @@ const { width, height } = Dimensions.get('window');
 
 const IngresoEgresoScreen = ({ navigation }) => {
   const [ordenes, setOrdenes] = useState([]);
+  const [camiones, setCamiones] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [tipoMovimiento, setTipoMovimiento] = useState('ingreso');
   const [ordenSeleccionada, setOrdenSeleccionada] = useState(null);
@@ -33,6 +34,9 @@ const IngresoEgresoScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   
   // Estados separados para cada campo
+  const [placa, setPlaca] = useState('');
+  const [piloto, setPiloto] = useState('');
+  const [camionSeleccionado, setCamionSeleccionado] = useState(null);
   const [origen, setOrigen] = useState('');
   const [destino, setDestino] = useState('');
   const [tipoCarga, setTipoCarga] = useState('');
@@ -41,6 +45,7 @@ const IngresoEgresoScreen = ({ navigation }) => {
 
   useEffect(() => {
     cargarOrdenes();
+    cargarCamiones();
     cargarMovimientos();
     initializeNotifications();
   }, []);
@@ -61,6 +66,17 @@ const IngresoEgresoScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Error cargando órdenes:', error);
       Alert.alert('Error', 'No se pudieron cargar las órdenes de trabajo');
+    }
+  };
+
+  const cargarCamiones = async () => {
+    try {
+      const data = await transporteApi.getCamiones();
+      setCamiones(data);
+      console.log('✅ Cargados', data.length, 'camiones para validación de scanner');
+    } catch (error) {
+      console.error('Error cargando camiones:', error);
+      // No mostrar alerta para no interrumpir, pero log el error
     }
   };
 
@@ -97,6 +113,9 @@ const IngresoEgresoScreen = ({ navigation }) => {
   };
 
   const limpiarFormulario = () => {
+    setPlaca('');
+    setPiloto('');
+    setCamionSeleccionado(null);
     setOrigen('');
     setDestino('');
     setTipoCarga('');

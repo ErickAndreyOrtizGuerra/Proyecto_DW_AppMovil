@@ -1,4 +1,4 @@
-# Poryecto de Transportes Ultrarrápidos - App Móvil
+# Proyecto de Transportes Ultrarrápidos - App Móvil
 
 Aplicación móvil desarrollada por el grupo conformado por: Andy Aquino, Erick Ortiz y Carlos Martinez
 
